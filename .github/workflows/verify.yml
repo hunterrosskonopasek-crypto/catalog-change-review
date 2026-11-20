@@ -1,23 +1,56 @@
-name: Verify catalog review
-on: [push, pull_request]
+name: Marketplace consumer smoke
+on:
+  push:
+    branches:
+      - verify/marketplace-consumer-v1.0.1-20261120
 permissions:
   contents: read
 jobs:
-  review:
+  public-consumer:
+    name: Verify the public action against fictional catalogs
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     steps:
-      - name: Check out the tested commit
+      - name: Check out the fictional CSV fixtures
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Compare example exports and exercise input errors
-        run: python3 -m unittest -v
-      - name: Run the packaged action on an unchanged catalog
-        uses: ./
+        with:
+          persist-credentials: false
+      - name: Accept an unchanged catalog
+        id: unchanged
+        uses: hunterrosskonopasek-crypto/catalog-change-review@v1.0.1
         with:
           before: examples/before.csv
           after: examples/before.csv
-      - name: Verify a changed catalog triggers review
+      - name: Flag a changed catalog
+        id: changed
+        continue-on-error: true
+        uses: hunterrosskonopasek-crypto/catalog-change-review@v1.0.1
+        with:
+          before: examples/before.csv
+          after: examples/after.csv
+      - name: Verify consumer outcomes, tagged source and all four review reasons
+        if: ${{ always() }}
+        env:
+          UNCHANGED_OUTCOME: ${{ steps.unchanged.outcome }}
+          CHANGED_OUTCOME: ${{ steps.changed.outcome }}
         shell: bash
         run: |
+          set -euo pipefail
+          printf 'Unchanged catalog: %s. Changed catalog: %s.\n' "$UNCHANGED_OUTCOME" "$CHANGED_OUTCOME"
+          test "$UNCHANGED_OUTCOME" = success
+          test "$CHANGED_OUTCOME" = failure
+          action_dir="$(dirname "$RUNNER_WORKSPACE")/_actions/hunterrosskonopasek-crypto/catalog-change-review/v1.0.1"
+          test "$(git hash-object "$action_dir/action.yml")" = 99f3b085a4c80d3abf43b9aeafdd8c53a1e30da9
+          test "$(git hash-object "$action_dir/review.py")" = 0b7efd67ed85b5a5e9b8357c32ab28a1cc53091b
+          result="$RUNNER_TEMP/catalog-review.json"
           status=0
-          python3 review.py --fail-on-change examples/before.csv examples/after.csv || status=$?
+          python3 "$action_dir/review.py" --fail-on-change -- examples/before.csv examples/after.csv > "$result" || status=$?
           test "$status" = 1
+          python3 - "$result" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          counts = json.loads(Path(sys.argv[1]).read_text())["counts"]
+          assert counts == {"added": 1, "ambiguous_key": 1, "changed": 1, "removed": 1}, counts
+          print("Tagged action review counts:", counts)
+          PY

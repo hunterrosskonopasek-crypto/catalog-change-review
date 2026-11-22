@@ -6,6 +6,12 @@ JAGGAER asks suppliers in its Science Catalog to offer scientific products, have
 
 STEMCELL Technologies describes quarterly price-file submissions for its hosted catalogs. If your institution also receives periodic files, keep the last approved export and review the proposed file against it before the next upload. [STEMCELL’s static-file workflow](https://www.stemcell.com/eprocurement-solutions-for-labs)
 
+## Review a file before the next upload
+
+[Open the hosted catalog price review](https://hunterworkflowconsulting.com/hosted-price-review) to run the example or select three UTF-8 CSVs on your device. Set the number of individual items needed in one order. The tool rounds each catalog up to whole order units and reports the two totals, their difference and any proposed fields that conflict with the effective agreement. The five example SKUs produce four items for review and one match. A blank pack count stays open even when both catalog files have the same blank.
+
+For offline use, [download the HTML file](https://github.com/hunterrosskonopasek-crypto/catalog-change-review/raw/refs/heads/main/examples/university-hosted-catalog/hosted-price-review.html) and open it in a browser. Each of the three files can contain up to 25 data records. The review CSV includes source record numbers and the agreement reference. Only follow the managed-pilot link if you want to contact HWC.
+
 ## Compare the supplier exports
 
 Read [the approved catalog](approved.csv), [the proposed catalog](proposed.csv) and [the applicable price terms](price-terms.csv) together. Each price is in USD for one order unit. EA means each, BX means box and CS means case. The pack count is the total number of individual items per order unit. Assume the same buyer, supplier, product, currency and freight terms across both exports.

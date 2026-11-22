@@ -23,7 +23,7 @@ Download and extract the [current project ZIP](https://github.com/hunterrosskono
 python3 examples/znode-bundle-associations/preflight.py
 ~~~
 
-The command reads the [seven-product snapshot](products.csv), the [kit owner’s approved bill](approved-bom.csv) and the [proposed relationships](proposed.csv). It writes a CSV to standard output. To save your own worksheet, append `> my-review.csv`. Import the SKU columns as **text** when opening CSVs in Excel to retain the leading zeros.
+The command reads the [seven-product snapshot](products.csv), the [kit owner’s approved bill](approved-bom.csv) and the [proposed relationships](proposed.csv). It writes a CSV to standard output. To save your own worksheet, append `--output my-review.csv`. This creates a new UTF-8 CSV for Excel and preserves any existing file at that path. Import the SKU columns as **text** when opening CSVs in Excel to retain the leading zeros.
 
 Try changing the proposed GSK-004 quantity from 2 to 4 in a copy of the proposal. That row should switch to MATCH, leaving five rows for review.
 

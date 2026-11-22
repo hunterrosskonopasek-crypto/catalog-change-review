@@ -156,11 +156,19 @@ def csv_cell(value):
     return text
 
 
+def write_report(stream, fields, rows):
+    writer = csv.writer(stream, lineterminator="\n")
+    writer.writerow(fields)
+    writer.writerows([csv_cell(cell) for cell in row] for row in rows)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--products", type=Path, default=HERE / "products.csv")
     parser.add_argument("--bom", type=Path, default=HERE / "approved-bom.csv")
     parser.add_argument("--proposed", type=Path, default=HERE / "proposed.csv")
+    parser.add_argument("--output", type=Path,
+                        help="Save to a new UTF-8 CSV with a byte-order mark for Excel.")
     scope = parser.add_mutually_exclusive_group()
     scope.add_argument("--whole-bill", action="store_true",
                        help="Review all proposed lines and flag any approved component omitted from the import.")
@@ -172,9 +180,19 @@ def main():
                                     whole_bill=args.whole_bill, kits=args.kit)
     except (OSError, UnicodeError, csv.Error, ValueError) as exc:
         parser.exit(2, f"Input error: {exc}\n")
-    writer = csv.writer(sys.stdout, lineterminator="\n")
-    writer.writerow(fields)
-    writer.writerows([csv_cell(cell) for cell in row] for row in rows)
+    try:
+        if args.output is None:
+            write_report(sys.stdout, fields, rows)
+        else:
+            stream = args.output.open("x", encoding="utf-8-sig", newline="")
+            try:
+                with stream:
+                    write_report(stream, fields, rows)
+            except (OSError, UnicodeError, csv.Error):
+                args.output.unlink()
+                raise
+    except (OSError, UnicodeError, csv.Error) as exc:
+        parser.exit(2, f"Output error: {exc}\n")
 
 
 if __name__ == "__main__":

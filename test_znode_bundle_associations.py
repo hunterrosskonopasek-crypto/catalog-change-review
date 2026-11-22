@@ -114,3 +114,50 @@ class BundleReviewTests(unittest.TestCase):
             self.assertEqual(result.returncode, 2)
             self.assertEqual(result.stdout, "")
             self.assertIn("repeated reference key", result.stderr)
+
+    def test_whole_bill_finds_omissions_with_source_record_and_unit(self):
+        with unit_inputs("ApprovedUOM", "ProposedUOM", ["EA"], ["EA"]) as (bill, proposal):
+            with bill.open("a", encoding="utf-8", newline="") as stream:
+                csv.writer(stream).writerows([["KIT-710", "00017", "3", "EA"], ["KIT-720", "CLP-100", "2", "CS"]])
+            result = run("--whole-bill", "--bom", bill, "--proposed", proposal)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            matched, missing, other = csv.DictReader(StringIO(result.stdout))
+            self.assertEqual((matched["record"], matched["approved_record"], matched["decision"]), ("1", "1", "MATCH"))
+            self.assertEqual((missing["ChildSKU"], missing["record"], missing["approved_record"]), ("00017", "", "2"))
+            self.assertEqual((missing["approved_quantity"], missing["proposed_quantity"], missing["decision"]), ("3", "", "REVIEW"))
+            self.assertEqual((other["ParentSku"], other["proposed_uom"], other["approved_uom"]), ("KIT-720", "", "CS"))
+
+    def test_named_scope_excludes_other_kits_and_retains_original_record_numbers(self):
+        with TemporaryDirectory() as temp:
+            path = Path(temp) / "proposal.csv"
+            path.write_text("ParentSku,ChildSKU,DisplayOrder,IsDefault,Quantity\n"
+                            "KIT-720,CLP-100,1,0,1\nKIT-710,PIN-002,1,0,2\n"
+                            "KIT-710,PIN-002,2,0,1\nKIT-710,UNKNOWN,3,0,1\n", encoding="utf-8")
+            result = run("--kit", "KIT-710", "--proposed", path)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            rows = list(csv.DictReader(StringIO(result.stdout)))
+            self.assertEqual({r["ParentSku"] for r in rows}, {"KIT-710"})
+            self.assertEqual([r["record"] for r in rows], ["2", "3", "4", "", "", ""])
+            self.assertEqual([r["approved_record"] for r in rows], ["1", "1", "", "2", "3", "4"])
+            self.assertIn("more than once", rows[0]["reason"])
+            self.assertIn("Pair absent", rows[2]["reason"])
+            self.assertTrue(all(r["decision"] == "REVIEW" for r in rows))
+            both = run("--kit", "KIT-710", "--kit", "KIT-720", "--proposed", path)
+            self.assertEqual(both.stdout, run("--whole-bill", "--proposed", path).stdout)
+            self.assertEqual(run("--kit", "kit-710", "--proposed", path).returncode, 2)
+            self.assertEqual(run("--whole-bill", "--kit", "KIT-710").returncode, 2)
+
+    def test_empty_proposal_and_bill(self):
+        with TemporaryDirectory() as temp:
+            path = Path(temp) / "proposal.csv"
+            path.write_text("ParentSku,ChildSKU,DisplayOrder,IsDefault,Quantity\n", encoding="utf-8")
+            result = run("--whole-bill", "--proposed", path)
+            rows = list(csv.DictReader(StringIO(result.stdout)))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual([r["approved_record"] for r in rows], ["1", "2", "3", "4", "5"])
+            self.assertTrue(all(r["record"] == "" and r["decision"] == "REVIEW" for r in rows))
+            bill = Path(temp) / "bill.csv"
+            bill.write_text("ParentSku,ChildSKU,ApprovedQuantity\n", encoding="utf-8")
+            result = run("--whole-bill", "--bom", bill)
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("populated approved bill", result.stderr)

@@ -60,11 +60,21 @@ def number(text):
     return value if value.is_finite() and 1 <= value <= 99999 else None
 
 
-def review_table(products_file, bill_file, proposed_file):
+def review_table(products_file, bill_file, proposed_file, *, whole_bill=False, kits=()):
     product_rows, _ = read_table(products_file, ["SKU", "ProductType"])
     products = index_reference(product_rows, ["SKU"], products_file)
     bill_rows, approved_column = read_table(bill_file, [*RELATION, "ApprovedQuantity"], "approved")
     bill = index_reference(bill_rows, RELATION, bill_file)
+    selected = set(kits)
+    if whole_bill and selected:
+        raise ValueError("Choose the whole approved bill or specific kit IDs.")
+    complete = whole_bill or bool(selected)
+    if complete and not bill:
+        raise ValueError(f"{bill_file.name}: completeness requires a populated approved bill")
+    unknown = selected - {parent for parent, child in bill}
+    if unknown:
+        raise ValueError(f"{bill_file.name}: no approved components for requested kit(s) {sorted(unknown)!r}")
+    bill_records = {pair: record for record, pair in enumerate(bill, 1)} if complete else {}
     for key, row in bill.items():
         if number(row["ApprovedQuantity"]) is None:
             raise ValueError(f"{bill_file.name}: confirm the approved quantity for {key!r}")
@@ -76,6 +86,8 @@ def review_table(products_file, bill_file, proposed_file):
     frequency = Counter(pairs)
     for record, (row, pair) in enumerate(zip(proposals, pairs), 1):
         parent, child = pair
+        if selected and parent not in selected:
+            continue
         reasons = []
         if frequency[pair] > 1:
             reasons.append("Parent/child pair occurs more than once in proposal")
@@ -116,9 +128,20 @@ def review_table(products_file, bill_file, proposed_file):
                     reasons.append("Component units differ. Confirm the unit or conversion with the kit owner")
         matched_reason = ("Matches supplied references, including component unit" if compare_units else
                           "Matches supplied IDs and quantity. Unit basis unverified")
+        source = (bill_records.get(pair, ""),) if complete else ()
         result.append((record, parent, child, raw, approved["ApprovedQuantity"] if approved else "",
-                       "REVIEW" if reasons else "MATCH", " | ".join(reasons) or matched_reason, *units))
-    return (FIELDS + UNIT_FIELDS if compare_units else FIELDS), result
+                       "REVIEW" if reasons else "MATCH", " | ".join(reasons) or matched_reason, *units, *source))
+    fields = FIELDS + UNIT_FIELDS if compare_units else FIELDS
+    if complete:
+        fields += ("approved_record",)
+        for pair, approved in bill.items():
+            parent, child = pair
+            if pair in frequency or (selected and parent not in selected):
+                continue
+            units = ("", approved[approved_column] if approved_column else "") if compare_units else ()
+            result.append(("", parent, child, "", approved["ApprovedQuantity"], "REVIEW",
+                           "Approved component absent from proposed import", *units, bill_records[pair]))
+    return fields, result
 
 
 def review(products_file, bill_file, proposed_file):
@@ -138,9 +161,15 @@ def main():
     parser.add_argument("--products", type=Path, default=HERE / "products.csv")
     parser.add_argument("--bom", type=Path, default=HERE / "approved-bom.csv")
     parser.add_argument("--proposed", type=Path, default=HERE / "proposed.csv")
+    scope = parser.add_mutually_exclusive_group()
+    scope.add_argument("--whole-bill", action="store_true",
+                       help="Review all proposed lines and flag any approved component omitted from the import.")
+    scope.add_argument("--kit", action="append", default=[], metavar="PARENT_SKU",
+                       help="Review the complete set of lines for this exact approved parent. Repeat for more kits.")
     args = parser.parse_args()
     try:
-        fields, rows = review_table(args.products, args.bom, args.proposed)
+        fields, rows = review_table(args.products, args.bom, args.proposed,
+                                    whole_bill=args.whole_bill, kits=args.kit)
     except (OSError, UnicodeError, csv.Error, ValueError) as exc:
         parser.exit(2, f"Input error: {exc}\n")
     writer = csv.writer(sys.stdout, lineterminator="\n")

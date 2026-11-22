@@ -161,3 +161,17 @@ class BundleReviewTests(unittest.TestCase):
             result = run("--whole-bill", "--bom", bill)
             self.assertEqual(result.returncode, 2)
             self.assertIn("populated approved bill", result.stderr)
+
+    def test_excel_export_preserves_unicode_and_existing_files(self):
+        with unit_inputs("ApprovedUOM", "ProposedUOM", ["µm"], ["mm"]) as (bill, proposal):
+            output = bill.with_name("buyer-review.csv")
+            result = run("--whole-bill", "--bom", bill, "--proposed", proposal, "--output", output)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout, "")
+            original = output.read_bytes()
+            self.assertTrue(original.startswith(b"\xef\xbb\xbf"))
+            row = next(csv.DictReader(StringIO(original.decode("utf-8-sig"))))
+            self.assertEqual(row["approved_uom"], "µm")
+            self.assertEqual(row["decision"], "REVIEW")
+            self.assertEqual(run("--output", output).returncode, 2)
+            self.assertEqual(output.read_bytes(), original)

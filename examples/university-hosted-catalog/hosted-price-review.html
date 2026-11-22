@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hosted catalog price review | Hunter &amp; Co. Workflow Consulting</title>
+<link rel="canonical" href="https://hunterworkflowconsulting.com/hosted-price-review">
+<meta name="description" content="Compare a supplier’s approved and proposed catalog with the effective price terms. Check pack changes, whole-pack purchase cost and missing evidence on your device.">
+<meta property="og:url" content="https://hunterworkflowconsulting.com/hosted-price-review">
+<meta property="og:image" content="https://hunterworkflowconsulting.com/share/hunter-workflow-consulting-logo.png">
+<style>
+:root{color-scheme:light;--navy:#142d3b;--ink:#193641;--green:#146859;--paper:#f7f6f1;--line:#d1d9d3;--muted:#4c646a;--hold:#8e351a}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 "Source Sans 3",system-ui,sans-serif}header{border-bottom:1px solid var(--line);padding:1rem max(5vw,1rem);font-weight:650}main{max-width:1150px;margin:auto;padding:2rem 4vw 3rem}h1,h2,p{margin:.2rem 0 .65rem}h1{font:clamp(2.35rem,6vw,4.3rem)/1.04 "Source Serif 4",Georgia,serif;letter-spacing:-.035em;max-width:15em}h2{font-size:1.35rem}section{margin:1.7rem 0}p{max-width:76ch}a{color:var(--green);text-underline-offset:3px}button,input,select{font:inherit}button{border:1px solid var(--green);border-radius:4px;background:var(--green);color:white;padding:.48rem .9rem;cursor:pointer}button:disabled{opacity:.45;cursor:default}button.secondary{background:transparent;color:var(--green)}button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #bd670f;outline-offset:2px}fieldset{border:1px solid var(--line);border-radius:5px;padding:1rem;margin:1rem 0;background:white}legend{font-weight:650}.files,.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}.files label{font-size:.94rem;font-weight:600}.files input{display:block;width:100%;font-size:.85rem;margin-top:.4rem}.actions{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin:.8rem 0}.actions input[type=number]{width:6.5rem;border:1px solid #8eaaa5;border-radius:3px;padding:.45rem;background:#fff}details{margin:.4rem 0;color:var(--muted)}summary{cursor:pointer}code{font-size:.86rem;overflow-wrap:anywhere}table{width:100%;border-collapse:collapse;background:white;font-size:.94rem}th,td{padding:.65rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--navy);color:white;font-size:.84rem}td small{display:block;color:var(--muted);margin-top:.15rem}.table-wrap{overflow-x:auto}.hold{color:var(--hold);font-weight:700}.match{color:var(--green);font-weight:700}.status{font-weight:650}.secondary-text{font-size:.92rem;color:var(--muted)}footer{border-top:1px solid var(--line);padding-top:1.4rem}.error{color:var(--hold)}@media(max-width:700px){.files{grid-template-columns:1fr}.table-wrap{margin-right:-2vw}td,th{min-width:7rem}td:nth-child(2){min-width:13rem}main{padding:1.4rem 4vw 2rem}}
+</style></head><body>
+<header>Hunter &amp; Co. Workflow Consulting</header>
+<main>
+<h1>Hosted catalog price review</h1>
+<p>Check the next supplier price file against the agreement. A $24 box can keep its price while shrinking from 100 vials to 80. Ordering 400 vials would then cost $120 instead of $96.</p>
+<section aria-labelledby="inputs"><h2 id="inputs">Compare three files</h2>
+<p>Use the fictional example below or select up to 25 records per file from one buyer, supplier and effective price schedule. Use USD prices per order unit and the total individual items in that unit. Files are read on this device.</p>
+<fieldset><legend>Local CSV files</legend><div class="files">
+<label>Last approved catalog<input type="file" id="approved" accept=".csv,text/csv"></label>
+<label>Proposed catalog<input type="file" id="proposed" accept=".csv,text/csv"></label>
+<label>Effective price terms<input type="file" id="terms" accept=".csv,text/csv"></label>
+</div></fieldset>
+<details><summary>CSV headers and comparison rules</summary>
+<p>Use UTF-8 CSVs. The two catalogs require <code>sku,selling_unit,pack_qty,price_usd</code>. Price terms require <code>sku,source,order_unit,each_per_order_unit,agreed_price_usd</code>. Additional columns are allowed. The source is the applicable agreement or amendment reference.</p>
+<p>SKU matching preserves case, spaces and leading zeros. Use the same unit codes across files. Enter positive whole pack counts and nonnegative plain decimal prices with up to six decimal places. Missing keys, duplicate keys and missing evidence require review. A terms match covers only the fields shown. Confirm the agreement version and effective date yourself.</p></details>
+<div class="actions"><button id="compare" disabled>Compare selected files</button><button id="sample" class="secondary">Load fictional example</button></div>
+</section>
+<section aria-labelledby="results"><h2 id="results">Purchase impact and exceptions</h2>
+<div class="actions"><label for="quantity">Items needed per SKU for one order</label><input type="number" id="quantity" value="400" min="1" max="1000000000" step="1"></div>
+<p class="secondary-text">The estimate rounds up to whole packs for each SKU. It excludes freight, tax, rebates and volume tiers. A blank total means a price, order unit, pack count or unique source row is missing.</p>
+<p id="status" class="status" aria-live="polite"></p>
+<div class="table-wrap"><table><thead><tr><th scope="col">SKU</th><th scope="col">Review decision</th><th scope="col">Approved order</th><th scope="col">Proposed order</th><th scope="col">Difference</th></tr></thead><tbody id="output"></tbody></table></div>
+<div class="actions"><button id="download" class="secondary" disabled>Download review CSV</button></div></section>
+<footer><h2>Review an upcoming catalog release</h2><p>The $750 managed pilot covers one product family and up to 500 authorized SKUs. Your catalog owner receives a source-linked exception list and five worked examples. Include the family, approximate row count and next upload date in your inquiry.</p>
+<a href="https://hunterworkflowconsulting.com/data-audits?utm_source=hosted_price_review&amp;utm_medium=tool&amp;utm_campaign=university_hosted_catalog#catalog">Request scope for the $750 pilot</a></footer>
+</main><script>
+"use strict";
+const $ = id => document.getElementById(id);
+const catalogFields = ["sku","selling_unit","pack_qty","price_usd"];
+const termsFields = ["sku","source","order_unit","each_per_order_unit","agreed_price_usd"];
+const names = ["Approved","Proposed","Terms"];
+const inputs = [$("approved"),$("proposed"),$("terms")];
+const sampleText = ["sku,description,selling_unit,pack_qty,price_usd\nLBL-010,Blank specimen label,BX,100,12.00\nBOX-020,Freezer storage box,EA,1,4.00\nVIAL-030,Empty sample vial,BX,100,24.00\nDIV-040,Blank storage divider,CS,200,18.00\nTAG-050,Blank inventory tag,BX,,9.00\n", "sku,description,selling_unit,pack_qty,price_usd\nLBL-010,Blank specimen label,CS,1000,120.00\nBOX-020,Freezer storage box,EA,1,4.40\nVIAL-030,Empty sample vial,BX,80,24.00\nDIV-040,Blank storage divider,CS,,18.00\nTAG-050,Blank inventory tag,BX,,9.00\n", "sku,source,order_unit,each_per_order_unit,agreed_price_usd\nLBL-010,Fictional university price schedule A,BX,100,12.00\nBOX-020,Fictional signed amendment B effective for the proposed catalog,EA,1,4.40\nVIAL-030,Fictional university price schedule A,BX,100,24.00\nDIV-040,Fictional university price schedule A,CS,200,18.00\nTAG-050,Fictional price sheet with no pack count,BX,,9.00\n"];
+let loaded = null, exportRows = [], revision = 0;
+
+function csvRows(text) {
+  text = text.replace(/^\uFEFF/, "");
+  const rows = [];
+  let row = [], value = "", quoted = false, closed = false;
+  function field() { row.push(value); value = ""; closed = false; }
+  function record() { field(); if (row.length !== 1 || row[0] !== "") rows.push(row); row = []; }
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch !== '"') { value += ch; continue; }
+      if (text[i+1] === '"') { value += '"'; i++; }
+      else { quoted = false; closed = true; }
+    } else if (ch === ",") field();
+    else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && text[i+1] === "\n") i++;
+      record();
+    } else if (ch === '"' && value === "" && !closed) quoted = true;
+    else if (ch === '"' || closed) throw Error("Invalid CSV quoting.");
+    else value += ch;
+  }
+  if (quoted) throw Error("A quoted field is unfinished.");
+  if (row.length || value || closed) record();
+  return rows;
+}
+
+function readTable(text, index) {
+  const [headers = [], ...rows] = csvRows(text);
+  const required = index === 2 ? termsFields : catalogFields;
+  if (headers.some(x => !x.trim()) || new Set(headers).size !== headers.length ||
+      required.some(x => !headers.includes(x))) throw Error("Check the required and unique column headers.");
+  if (rows.length > 25 || !rows.length) throw Error("Supply between 1 and 25 data records.");
+  const groups = new Map(), blanks = [];
+  rows.forEach((values,i) => {
+    if (values.length !== headers.length) throw Error("Wrong column count at data record " + (i+1) + ".");
+    const item = Object.fromEntries(required.map(k => [k, values[headers.indexOf(k)]]));
+    item.record = i + 1;
+    if (!item.sku.trim()) { blanks.push(item); return; }
+    if (!groups.has(item.sku)) groups.set(item.sku,[]);
+    groups.get(item.sku).push(item);
+  });
+  return {groups, blanks};
+}
+
+const scale = 1000000n;
+function count(raw) { return /^\d{1,12}$/.test((raw ?? "").trim()) && BigInt(raw)>0n ? BigInt(raw) : null; }
+function price(raw) {
+  const match = /^(\d{1,12})(?:\.(\d{1,6}))?$/.exec((raw ?? "").trim());
+  return match ? BigInt(match[1])*scale + BigInt((match[2] || "").padEnd(6,"0")) : null;
+}
+function decimalUSD(micro) {
+  if (micro === null) return "";
+  const mag = micro < 0n ? -micro : micro;
+  const fraction = String(mag%scale).padStart(6,"0").replace(/0+$/,"").padEnd(2,"0");
+  return (micro < 0n ? "-" : "") + String(mag/scale) + "." + fraction;
+}
+function money(micro) {
+  if (micro === null) return "";
+  return (micro < 0n ? "-$" : "$") + decimalUSD(micro < 0n ? -micro : micro);
+}
+function basis(item, terms) {
+  return {unit:(item?.[terms?"order_unit":"selling_unit"]??"").trim(),
+          pack:count(item?.[terms?"each_per_order_unit":"pack_qty"]),
+          rate:price(item?.[terms?"agreed_price_usd":"price_usd"])};
+}
+function order(b, qty) {
+  if (b.pack === null || b.rate === null || !b.unit) return {packs:"", cost:null};
+  const packs = (qty+b.pack-1n)/b.pack;
+  return {packs:String(packs), cost:packs*b.rate};
+}
+function evaluate(sku, groups, qty) {
+  const issues = [];
+  const [old, next, term] = groups.map((g,i) => {
+    if (!g.length) issues.push(names[i]+" record missing");
+    if (g.length > 1) issues.push(names[i]+" SKU repeated");
+    return g.length === 1 ? g[0] : null;
+  });
+  const bases = [basis(old,false),basis(next,false),basis(term,true)];
+  [old,next,term].forEach((item,i) => {
+    if (!item) return;
+    const b = bases[i];
+    if (!b.unit) issues.push(names[i]+" order unit missing");
+    if (b.pack === null) issues.push(names[i]+" pack count missing or invalid");
+    if (b.rate === null) issues.push(names[i]+" price missing or invalid");
+  });
+  if (term && !term.source.trim()) issues.push("Agreement reference missing");
+  const [,p,t] = bases;
+  if (p.unit && t.unit && p.unit !== t.unit) issues.push("Order unit differs from terms");
+  if (p.pack !== null && t.pack !== null && p.pack !== t.pack) issues.push("Pack count differs from terms");
+  if (p.rate !== null && t.rate !== null && p.rate !== t.rate) issues.push("Price differs from terms");
+  const before = order(bases[0],qty), after = order(p,qty);
+  return {sku, issues, groups, term, before, after, delta:before.cost !== null && after.cost !== null ? after.cost-before.cost : null};
+}
+function clearReport(message, error=false) {
+  exportRows = []; $("output").replaceChildren(); $("download").disabled = true;
+  $("status").className = "status" + (error?" error":""); $("status").textContent = message;
+}
+function render() {
+  if (!loaded) return;
+  const value = $("quantity").value;
+  if (!/^\d{1,10}$/.test(value) || BigInt(value)<1n || BigInt(value)>1000000000n) {
+    clearReport("Enter a whole order quantity between 1 and 1,000,000,000.",true); return;
+  }
+  const qty = BigInt(value), tables = loaded.tables;
+  const keys = new Set(tables.flatMap(t => [...t.groups.keys()]));
+  const results = [...keys].map(k=>evaluate(k,tables.map(t=>t.groups.get(k)||[]),qty));
+  tables.forEach((t,i)=>t.blanks.forEach(item=>{
+    const groups=[[],[],[]];groups[i]=[item];
+    const r=evaluate("",groups,qty);r.issues.unshift(names[i]+" SKU missing");results.push(r);
+  }));
+  clearReport("");
+  exportRows = [["SKU","Decision","Reasons","Approved records","Proposed records","Terms records","Agreement reference","Items needed","Approved packs","Approved order USD","Proposed packs","Proposed order USD","Difference USD"]];
+  function cell(tr,main,detail="",css="") {
+    const td=tr.insertCell(); const span=document.createElement("span");span.textContent=main;span.className=css;td.append(span);
+    if(detail){const small=document.createElement("small");small.textContent=detail;td.append(small);}
+  }
+  let holds=0;
+  for(const r of results) {
+    const records=r.groups.map(g=>g.map(i=>i.record).join(", "));
+    const decision=r.issues.length?"Review":"Terms match"; if(r.issues.length) holds++;
+    const tr=$("output").insertRow();cell(tr,r.sku||"(blank SKU)","Data records A / P / T: "+records.map(x=>x||"–").join(" / "));
+    cell(tr,decision,r.issues.join(". ")||r.term.source,r.issues.length?"hold":"match");
+    for(const o of [r.before,r.after])cell(tr,money(o.cost)||"—",o.packs?o.packs+" order unit(s)":"");
+    cell(tr,money(r.delta)||"—");
+    exportRows.push([r.sku,decision,r.issues.join("; "),...records,r.term?.source||"",value,r.before.packs,decimalUSD(r.before.cost),r.after.packs,decimalUSD(r.after.cost),decimalUSD(r.delta)]);
+  }
+  $("status").textContent=loaded.label+" · "+holds+" to review · "+(results.length-holds)+" match effective terms";
+  $("download").disabled=false;
+}
+function loadTexts(texts,label) {
+  const tables=texts.map((s,i)=>{try{return readTable(s,i);}catch(e){throw Error(names[i]+" file: "+e.message);}});
+  loaded={tables,label}; render();
+}
+function showSample(){
+  revision++;inputs.forEach(input=>{input.value="";});$("compare").disabled=true;
+  loadTexts(sampleText,"Fictional example");
+}
+inputs.forEach(input=>input.addEventListener("change",()=>{
+  revision++;loaded=null;clearReport("Choose all three files, then select Compare selected files.");
+  $("compare").disabled=!inputs.every(el=>el.files.length===1);
+}));
+$("compare").addEventListener("click",async()=>{
+  const run=++revision;loaded=null;clearReport("Reading selected files…");
+  try{
+    const files=inputs.map(el=>el.files[0]);
+    if(files.some(f=>!f || f.size>1000000))throw Error("Select three files no larger than 1 MB each.");
+    const texts=await Promise.all(files.map(async f=>new TextDecoder("utf-8",{fatal:true}).decode(await f.arrayBuffer())));
+    if(run===revision)loadTexts(texts,"Selected local files");
+  }catch(e){if(run===revision)clearReport(e.message,true);}
+});
+$("sample").addEventListener("click",showSample);
+$("quantity").addEventListener("input",render);
+function csvCell(value,index) {
+  let text=String(value); if(index < 7 && (/^[\s\uFEFF]*[=+@-]/.test(text)||/^[\t\r\n]/.test(text)))text="'"+text;
+  return '"'+text.replace(/"/g,'""')+'"';
+}
+$("download").addEventListener("click",()=>{
+  const csv="\uFEFF"+exportRows.map(row=>row.map(csvCell).join(",")).join("\r\n")+"\r\n";
+  const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+  const anchor=document.createElement("a");anchor.href=url;anchor.download="hosted-price-review.csv";anchor.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+showSample();
+</script></body></html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Check a staged winter catalogue row against two public product records and the published bag-price breaks.">
+  <title>Winter catalogue check · Hunter Workflow Consulting</title>
+  <style>
+    :root {color-scheme:light; --ink:#162f37; --muted:#496069; --line:#bac9c8; --paper:#f6f7f1; --sea:#15555b}
+    * {box-sizing:border-box}
+    body {margin:0;background:var(--paper);color:var(--ink);font:1rem/1.55 "Segoe UI",Arial,sans-serif}
+    main {width:min(55rem,100%);margin:auto;padding:1.25rem clamp(1rem,4vw,2.25rem) 2.5rem}
+    header {display:flex;flex-wrap:wrap;justify-content:space-between;gap:.3rem 1rem;padding:.5rem 0;border-bottom:2px solid var(--ink);font-size:.84rem}
+    header span, .note {color:var(--muted)}
+    h1 {font-family:Georgia,serif;font-weight:500;font-size:clamp(2.3rem,6vw,4.8rem);line-height:1.01;letter-spacing:-.045em;margin:1.35rem 0 .6rem}
+    p {margin:.55rem 0}
+    .intro {max-width:62ch}
+    fieldset {border:1px solid var(--line);padding:1rem;margin:1.5rem 0 .85rem;border-radius:.3rem;background:white}
+    legend, label, summary {font-weight:650}
+    .controls {display:grid;grid-template-columns:2.4fr 1fr 1.45fr;gap:1rem}
+    label {display:grid;gap:.35rem;font-size:.87rem}
+    select,input {width:100%;min-width:0;min-height:2.8rem;background:#fff;border:1px solid #668287;border-radius:.22rem;font:inherit;color:var(--ink);padding:.45rem}
+    :focus-visible {outline:3px solid #00849a;outline-offset:2px}
+    .result {padding:1rem 1.2rem;border-left:.35rem solid #ac571b;background:#fff1df}
+    .result[data-state="match"] {border-color:#32715e;background:#e1f0e6}
+    .result[data-state="input"] {border-color:#5a686d;background:#e7edef}
+    .result h2 {font-size:1.25rem;line-height:1.2;margin:0}
+    .source-table {width:100%;border-collapse:collapse;margin-top:.65rem;font-size:.94rem}
+    th,td {text-align:left;padding:.48rem .35rem;border-bottom:1px solid var(--line)}
+    .sku {font-family:Consolas,monospace}
+    details {margin:1rem 0}
+    summary {cursor:pointer}
+    a {color:var(--sea);text-underline-offset:.15em}
+    footer {border-top:1px solid var(--line);margin-top:1.5rem;padding-top:.55rem;font-size:.85rem}
+    .next {font-weight:650}
+    @media(max-width:36rem){.controls{grid-template-columns:1fr 1fr}.controls label:first-child{grid-column:1/-1}th,td{padding:.4rem .18rem}.source-table{font-size:.8rem}}
+  </style>
+</head>
+<body>
+  <main>
+    <header><strong>Hunter Workflow Consulting</strong><span>Public catalogue example · 22 November 2026</span></header>
+    <h1>Check a winter salt order</h1>
+    <p class="intro">MacGregor lists two 25 kg bags with distinct item codes. Its published white-salt offer also changes price at 49 bags. Try a fictional staged order for <strong>white de-icing salt, DEI0025</strong>, using those public records.</p>
+    <fieldset>
+      <legend>Staged order row</legend>
+      <div class="controls">
+        <label>Proposed storefront SKU
+          <select id="sku">
+            <option value="10029421">10029421 · white salt</option>
+            <option value="10029410">10029410 · brown salt</option>
+          </select>
+        </label>
+        <label>Bags
+          <input id="bags" value="49" type="number" min="1" max="9999" step="1" required>
+        </label>
+        <label>£ per bag, ex VAT
+          <input id="price" value="5.28" type="number" min="0" max="9999.99" step=".01" required>
+        </label>
+      </div>
+    </fieldset>
+    <section id="result" class="result" aria-live="polite" aria-atomic="true">
+      <h2 id="verdict">Review the price tier</h2>
+      <p id="explanation">At 49 bags, the reference is £5.00 per bag. The staged row is £13.72 above the published total before VAT.</p>
+    </section>
+    <noscript><p>Enable JavaScript to recalculate the staged row after editing.</p></noscript>
+    <details open>
+      <summary>Published reference</summary>
+      <table class="source-table">
+        <thead><tr><th scope="col">Product</th><th scope="col">Product code</th><th scope="col">Storefront SKU</th><th scope="col">Bag</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://mymacgregors.co.uk/product/16478">White salt</a></td><td class="sku">DEI0025</td><td class="sku">10029421</td><td>25 kg</td></tr>
+          <tr><td><a href="https://mymacgregors.co.uk/product/16442">Brown rock salt</a></td><td class="sku">BS0025</td><td class="sku">10029410</td><td>25 kg</td></tr>
+        </tbody>
+      </table>
+      <p class="note">White salt per bag, ex VAT: 1–9 bags £6.30 · 10–29 £5.60 · 30–48 £5.28 · 49+ £5.00. Account-specific terms would need their own approved source. <a href="https://www.macgregorsupplies.co.uk/de-icing-salt-special-offer">Published volume offer</a></p>
+    </details>
+    <p class="next">For your next release, which product family has a dated export and a reviewer who can approve its item mapping and pricing source?</p>
+    <footer>The example uses public listings and HWC-created inputs. It describes no customer order or live checkout test. <a href="https://www.macgregorsupplies.co.uk/news-events/winter-workplace-preparation-get-ahead-of-frost-ice-and-snow">MacGregor’s 10 November winter guide</a> · <a href="https://www.znode.com/customers/details/znode-customers/macgregor-industrial-supplies-drives-digital-growth-with-znode">Znode customer profile</a></footer>
+  </main>
+  <script>
+    const sku = document.getElementById('sku');
+    const bags = document.getElementById('bags');
+    const price = document.getElementById('price');
+    const result = document.getElementById('result');
+    const verdict = document.getElementById('verdict');
+    const explanation = document.getElementById('explanation');
+    const sterling = new Intl.NumberFormat('en-GB', {style: 'currency', currency: 'GBP'});
+
+    function show(state, title, detail) {
+      result.dataset.state = state;
+      verdict.textContent = title;
+      explanation.textContent = detail;
+    }
+
+    function compare() {
+      if (!bags.validity.valid || !price.validity.valid) {
+        show('input', 'Check the order inputs', 'Enter 1 to 9,999 whole bags and a price from £0.00 to £9,999.99 in whole pence.');
+        return;
+      }
+      if (sku.value !== '10029421') {
+        show('review', 'Review the item mapping', 'SKU 10029410 identifies brown rock salt BS0025. The requested white salt DEI0025 maps to 10029421. Both bags weigh 25 kg. Resolve the product identity before applying a price tier.');
+        return;
+      }
+      const quantity = bags.valueAsNumber;
+      const tiers = [[49, 500], [30, 528], [10, 560], [1, 630]];
+      const expectedPence = tiers.find(([minimum]) => quantity >= minimum)[1];
+      const proposedPence = Math.round(price.valueAsNumber * 100);
+      const total = sterling.format(quantity * expectedPence / 100);
+      const delta = quantity * (proposedPence - expectedPence);
+      const baseline = 'At ' + quantity + (quantity === 1 ? ' bag' : ' bags') + ', the reference is ' + sterling.format(expectedPence / 100) + ' per bag (' + total + ' ex VAT). ';
+      if (delta === 0) {
+        show('match', 'Item and price tier match', baseline + 'The staged row matches both checks.');
+        return;
+      }
+      const direction = delta > 0 ? ' above ' : ' below ';
+      show('review', 'Review the price tier', baseline + 'The staged row totals ' + sterling.format(quantity * proposedPence / 100) + ', or ' + sterling.format(Math.abs(delta) / 100) + direction + 'the reference.');
+    }
+
+    for (const field of [sku, bags, price]) {
+      field.addEventListener('input', compare);
+    }
+    compare();
+  </script>
+</body>
+</html>

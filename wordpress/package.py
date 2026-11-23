@@ -1,26 +1,43 @@
-"""Build the WordPress plugin from the existing, self-contained catalog checker."""
-
+"""Build the WordPress edition from its UI and the shared offline catalog checks."""
+from base64 import b64encode
+from hashlib import sha256
 from pathlib import Path
-from zipfile import ZIP_STORED, ZipFile, ZipInfo
+from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 SLUG = "hwc-catalog-review"
+OFFLINE = ROOT / "free-tools/25-sku-diagnostic/HWC-Free-25-SKU-Diagnostic.html"
+
+
+def section(source, begin, end):
+    return source.split(begin, 1)[1].split(end, 1)[0]
+
+
+def checker_page():
+    source = OFFLINE.read_text(encoding="utf-8")
+    style = section(source, "<style>", "</style>")
+    # Both editions use the same parser, column matching and five diagnostic checks.
+    core = section(source, "<script>", "function formatReport(")
+    script = core + (HERE / "screen.js").read_text(encoding="utf-8")
+    page = (HERE / "screen.html").read_text(encoding="utf-8")
+    for name, content in (("SCRIPT", script), ("STYLE", style)):
+        digest = b64encode(sha256(content.encode("utf-8")).digest()).decode("ascii")
+        page = page.replace("{{" + name + "_HASH}}", digest)
+        page = page.replace("{{" + name + "}}", content)
+    return page
 
 
 def build():
-    sources = {
-        "hwc-catalog-review.php": HERE / "hwc-catalog-review.php",
-        "catalog-review.html": ROOT / "free-tools/25-sku-diagnostic/HWC-Free-25-SKU-Diagnostic.html",
-        "LICENSE": ROOT / "LICENSE",
-    }
+    files = {"catalog-review.html": checker_page()}
+    for name, path in (("hwc-catalog-review.php", HERE), ("readme.txt", HERE), ("LICENSE", ROOT)):
+        files[name] = (path / name).read_text(encoding="utf-8")
     with ZipFile(HERE / (SLUG + ".zip"), "w") as archive:
-        for name, source in sources.items():
+        for name, content in files.items():
             entry = ZipInfo(f"{SLUG}/{name}", (2026, 1, 1, 0, 0, 0))
             entry.create_system = 3
             entry.external_attr = 0o100644 << 16
-            # Git may check out CRLF on Windows. Use the same bytes on every OS.
-            archive.writestr(entry, source.read_text(encoding="utf-8").encode("utf-8"), ZIP_STORED)
+            archive.writestr(entry, content.encode("utf-8"), ZIP_DEFLATED)
 
 
 if __name__ == "__main__":

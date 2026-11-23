@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-{{SCRIPT_HASH}}'; style-src 'sha256-{{STYLE_HASH}}'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>HWC Catalog Review</title>
+<style>{{STYLE}}</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to checker</a>
+
+<main id="main"><h1>Review a catalog CSV</h1>
+<p>Open a catalog CSV to see which records need review before import. Download all findings as a text report or a worksheet for the catalog owner.</p>
+<section class="check-panel" aria-labelledby="sample-heading">
+<h2 id="sample-heading">Choose a file</h2>
+<p id="file-help">Use a UTF-8 CSV with a header and at least one data row. The local memory limits are 4 MiB, 128 columns and 500,000 cells including headers. Your file and report stay on this device, even when you are connected to the internet.</p>
+<label for="sample-file">Catalog CSV</label><input id="sample-file" type="file" accept=".csv,text/csv" aria-describedby="file-help">
+<div class="aux-actions"><button type="button" class="quiet" id="try-example">Try a fictional sample</button> <a href="data:text/csv;charset=utf-8;base64,c2t1LGd0aW4sdW9tLHNwZWNfdXJsLGNhcmRfbXBuLGRlc3RpbmF0aW9uX21wbgowMDEsMDM2MDAwMjkxNDUyLEVBLGh0dHBzOi8vZXhhbXBsZS5jb20vdmFsdmUucGRmLFYtMTAsVi0xMAowMDIsMDM2MDAwMjkxNDUzLCxzcGVjLnBkZixWLTIwLFYtMjUKMDAyLDk2Mzg1MDc0LFBLLGh0dHBzOi8vZXhhbXBsZS5jb20vZWxib3cucGRmLEUtMzAsRS0zMAo=" download="catalog-template.csv">Download the CSV template</a></div>
+<details><summary>Which columns can I include?</summary><p>Include a SKU column. After loading, use “Match optional columns” to choose the barcode, selling unit, specification link and part-number fields from your export. The template uses <code>gtin</code>, <code>uom</code>, <code>spec_url</code>, <code>card_mpn</code> and <code>destination_mpn</code>. Use the last two together for the part number displayed on a related-item card and the part number at its link destination. A blank pair means this row has no card comparison.</p></details>
+<div id="column-mapping" hidden><label for="sample-sku">SKU column</label><select id="sample-sku"></select> <button type="button" class="quiet" id="clear-sample">Clear file</button>
+<details id="optional-mapping"><summary>Match optional columns</summary>
+<p>Choose the column your export uses for each field. Leave a field on “Skip this field” if your file omits it. The card comparison needs both part numbers.</p>
+<div class="selections">
+<div><label for="sample-gtin">Barcode (GTIN, UPC or EAN)</label><select id="sample-gtin"></select></div>
+<div><label for="sample-uom">Selling unit</label><select id="sample-uom"></select></div>
+<div><label for="sample-spec">Specification link</label><select id="sample-spec"></select></div>
+<div><label for="sample-card">Part number on the related card</label><select id="sample-card"></select></div>
+<div><label for="sample-target">Part number at the destination</label><select id="sample-target"></select></div>
+</div></details></div>
+<p id="sample-status" role="status" aria-live="polite"></p><noscript><p>Enable JavaScript to run the diagnostic on this device.</p></noscript>
+</section>
+<section id="sample-results" class="check-panel result-panel" aria-labelledby="report-heading" hidden>
+<h2 id="report-heading">Your catalog report</h2><p id="finding-count"></p><p><strong>Checks run</strong><br><span id="checks-run"></span></p><p id="skipped-checks"></p>
+<p id="preview-note"></p><ol id="findings"></ol><p>Record 1 is the first data row. A flag calls for source review. The link check inspects the address format. Confirming that a document opens and belongs to the item requires a separate review.</p>
+<button type="button" class="quiet" id="download-report">Download report (.txt)</button>
+<button type="button" class="quiet" id="download-review">Download review worksheet (.csv)</button>
+<p>The worksheet includes source values and one row per finding. Assign a reviewer and record the approved change. Import SKU and value columns as text to retain leading zeros. With no findings, the worksheet contains only the headings.</p>
+</section></main>
+
+<script>{{SCRIPT}}</script>
+</body>
+</html>

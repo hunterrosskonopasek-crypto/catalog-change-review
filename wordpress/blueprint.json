@@ -14,7 +14,7 @@
       "step": "installPlugin",
       "pluginData": {
         "resource": "url",
-        "url": "https://raw.githubusercontent.com/hunterrosskonopasek-crypto/catalog-change-review/c0194ff7236852cfa6b1a6f24fb2b7a122c22a0c/wordpress/hwc-catalog-review.zip"
+        "url": "https://raw.githubusercontent.com/hunterrosskonopasek-crypto/catalog-change-review/refs/tags/wordpress-v1.1.0/wordpress/hwc-catalog-review.zip"
       },
       "options": {
         "activate": true

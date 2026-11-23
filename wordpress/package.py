@@ -6,7 +6,7 @@ from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-SLUG = "hwc-catalog-review"
+SLUG = "catalog-release-review"
 OFFLINE = ROOT / "free-tools/25-sku-diagnostic/HWC-Free-25-SKU-Diagnostic.html"
 
 
@@ -30,7 +30,7 @@ def checker_page():
 
 def build():
     files = {"catalog-review.html": checker_page()}
-    for name, path in (("hwc-catalog-review.php", HERE), ("readme.txt", HERE), ("LICENSE", ROOT)):
+    for name, path in (("catalog-release-review.php", HERE), ("readme.txt", HERE), ("LICENSE", ROOT)):
         files[name] = (path / name).read_text(encoding="utf-8")
     with ZipFile(HERE / (SLUG + ".zip"), "w") as archive:
         for name, content in files.items():

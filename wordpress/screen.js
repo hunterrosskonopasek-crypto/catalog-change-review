@@ -34,7 +34,7 @@ function exportFindings(result, data, sku, mapping, fictional, format) {
     add(csvLine(['Source record', 'Selling SKU', 'Finding', 'Source column', 'Source value',
       'Comparison column', 'Comparison value', 'Suggested check', 'Reviewer', 'Decision', 'Approved value']));
   } else {
-    add(fictional ? 'HWC Catalog Review | Fictional example' : 'HWC Catalog Review');
+    add(fictional ? 'Catalog Release Review | Fictional example' : 'Catalog Release Review');
     add(summary(result));
     add('Checked: ' + result.checks.map(key => checkLabels[key]).join('; '));
     const skipped = Object.keys(checkLabels).filter(key => !result.checks.includes(key));

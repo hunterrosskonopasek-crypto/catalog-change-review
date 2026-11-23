@@ -1,10 +1,10 @@
-=== HWC Catalog Review ===
+=== Catalog Release Review ===
 Contributors: hunterworkflow
 Tags: csv, catalog, sku, woocommerce, import
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: MIT
 License URI: https://opensource.org/license/mit/
 
@@ -20,10 +20,12 @@ CSV files, their contents and the resulting reports stay in your browser. There 
 
 == Installation ==
 
-1. Install and activate HWC Catalog Review.
+1. Install and activate Catalog Release Review.
 2. Open Tools > Catalog CSV Review.
 3. Choose Try a fictional sample or select a UTF-8 CSV with a header.
 4. Match your columns, review the findings and download the worksheet.
+
+Previous GitHub testers: deactivate HWC Catalog Review before installing this package under its new directory name. There is no saved catalog or configuration to migrate. If both are active, the new checker supplies the existing Tools menu item.
 
 == Frequently Asked Questions ==
 
@@ -40,6 +42,9 @@ Select a selling SKU column. Barcode, unit, document URL and two part-number col
 This is a review tool. Use your approved sources to decide which findings to resolve, then import using your normal workflow. When opening the worksheet in a spreadsheet, import identifier cells as text to preserve leading zeros.
 
 == Changelog ==
+
+= 1.1.1 =
+* Adopted the directory name Catalog Release Review. The Tools menu remains available to people using the earlier GitHub edition.
 
 = 1.1.0 =
 * Review full CSV files within documented local memory limits. The preview shows up to 100 findings and both downloads retain the complete results.

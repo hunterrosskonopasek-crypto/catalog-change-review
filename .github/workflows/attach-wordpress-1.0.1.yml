@@ -1,0 +1,23 @@
+name: Attach WordPress plugin 1.0.1
+on:
+  push:
+    branches: [publish-wordpress-gallery-1.0.1]
+permissions: {}
+jobs:
+  attach:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: c7c72a11e0c40d4917f591cd9f02cc952a8b438c
+          persist-credentials: false
+      - name: Build the tagged archive and attach it without replacing existing assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          python3 wordpress/package.py
+          git diff --exit-code -- wordpress/hwc-catalog-review.zip
+          gh release upload wordpress-v1.0.1 wordpress/hwc-catalog-review.zip --repo "$GITHUB_REPOSITORY"

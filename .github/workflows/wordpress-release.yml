@@ -1,0 +1,45 @@
+name: Attach WordPress plugin package
+on:
+  release:
+    types: [published]
+
+permissions: {}
+
+jobs:
+  attach-package:
+    if: startsWith(github.event.release.tag_name, 'wordpress-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the tagged source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Confirm package and release versions match
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from zipfile import ZipFile
+
+          version = os.environ['TAG'].removeprefix('wordpress-v')
+          with ZipFile('wordpress/hwc-catalog-review.zip') as plugin:
+              if plugin.testzip() is not None:
+                  raise SystemExit('Plugin archive failed its integrity check')
+              readme = plugin.read('hwc-catalog-review/readme.txt').decode('utf-8')
+              header = plugin.read('hwc-catalog-review/hwc-catalog-review.php').decode('utf-8')
+              if f'Stable tag: {version}' not in readme.splitlines() or f' * Version: {version}' not in header.splitlines():
+                  raise SystemExit('The plugin version and release tag must agree')
+          PY
+      - name: Attach the tested ZIP
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fxq 'hwc-catalog-review.zip'; then
+            echo 'An asset with this name already exists.'
+            exit 0
+          fi
+          gh release upload "$TAG" wordpress/hwc-catalog-review.zip --repo "$GITHUB_REPOSITORY"

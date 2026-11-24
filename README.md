@@ -24,6 +24,8 @@ Manufacturers can [compare the same part across up to three distributor exports]
 
 [Trace a pack mismatch from supplier to merchant to channel](examples/source-to-channel-feed/README.md). Five fictional SKUs show when to ask the catalog owner or the feed team for evidence, including a channel correction that masks a merchant discrepancy.
 
+[Reproduce a price import in SQLite](examples/price-import-key/README.md). Four valid price rows share a SKU. The example shows why a three-carton order needs the selling unit and effective date to return $96.00.
+
 ## Try the example
 
 WordPress agencies can [open the catalog checker inside WordPress Playground or install the plugin](wordpress/README.md) to review a CSV before import.

@@ -39,4 +39,4 @@ python3 review.py "$sample/approved.csv" "$sample/proposed.csv" \
 
 The default run flags records 1, 3 and 4 for changes to selling unit or pack count. Adding price flags record 2 as well. Record 5 has identical blanks, so neither run flags it. The CLI compares field text. The calculations above and the agreement check are separate review steps.
 
-For a live supplier export, HWC’s $750 managed pilot covers one product family and up to 500 SKUs. Bring the family name, approximate row count and review deadline. [Scope the $750 catalog pilot](https://hunterworkflowconsulting.com/data-audits?utm_source=github&utm_medium=worked_example&utm_campaign=university_hosted_catalog#catalog)
+For a live supplier export, HWC’s $750 managed pilot covers one product family and up to 500 source rows. Bring the family name, approximate row count and review deadline. [Scope the $750 catalog pilot](https://hunterworkflowconsulting.com/data-audits?utm_source=github&utm_medium=worked_example&utm_campaign=university_hosted_catalog#catalog)

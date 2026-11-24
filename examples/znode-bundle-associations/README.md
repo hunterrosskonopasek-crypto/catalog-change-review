@@ -60,4 +60,4 @@ This HWC check uses the published field names and adds two independent checks ag
 
 ## Scope a distributor pilot
 
-For one product family and up to 500 authorized SKUs, the **$750 catalog pilot** delivers an editable list of findings and five worked examples with source evidence. Send the product family, approximate SKU count and planned import date. HWC confirms scope and file handoff before payment. [Request the $750 pilot](https://hunterworkflowconsulting.com/data-audits?utm_source=github&utm_medium=worked_example&utm_campaign=znode_bundle_associations#catalog)
+For one product family and up to 500 authorized source rows, the **$750 catalog pilot** delivers an editable list of findings and five worked examples with source evidence. Send the product family, approximate source row count and planned import date. HWC confirms scope and file handoff before payment. [Request the $750 pilot](https://hunterworkflowconsulting.com/data-audits?utm_source=github&utm_medium=worked_example&utm_campaign=znode_bundle_associations#catalog)

@@ -8,7 +8,7 @@ A distributor sells labels individually and in cartons. It maps a single label t
 
 Have a distributor migration with a product file due for import? Introduce Hunter to the catalog owner and the person approving the import. This note can be forwarded as written.
 
-> Would a second review of one product family help before your next import? Hunter & Co. Workflow Consulting can compare your proposed catalog with approved source data. The prepaid pilot is $750 for up to 500 authorized SKUs. You receive an editable list of findings and five worked examples with the supporting evidence. Your implementation team decides what to import. To scope it, send Hunter the product family, approximate SKU count and planned import date. Please send only those details in the introduction. [Email Hunter](mailto:hunter@hunterworkflowconsulting.com?subject=Distributor%20catalog%20pilot%20introduction).
+> Would a second review of one product family help before your next import? Hunter & Co. Workflow Consulting can compare your proposed catalog with approved source data. The prepaid pilot is $750 for up to 500 authorized source rows. You receive an editable list of findings and five worked examples with the supporting evidence. Your implementation team decides what to import. To scope it, send Hunter the product family, approximate source row count and planned import date. Please send only those details in the introduction. [Email Hunter](mailto:hunter@hunterworkflowconsulting.com?subject=Distributor%20catalog%20pilot%20introduction).
 
 **What to have ready.** Once the data owner approves sharing and any required confidentiality agreement is in place, identify the approved supplier reference and the proposed export. For a pricing question, also identify the order unit, applicable price list and quantity tier. HWC records the conflicting values, links the supporting evidence and flags missing evidence for the catalog owner.
 
@@ -49,7 +49,7 @@ The first report matches [the checked output](expected-findings.json). Record nu
 
 For a customer review, verify the approved packaging revision, account, website, effective price list, currency, tiers and exact order unit. The CLI compares the product fields you pass. It does not look up the live store, compute prices or approve changes. The example has one additional unit per SKU. When source products have several, match them by unit code across exports before interpreting a difference in an indexed column such as `additionalUnitPrecisions:0:conversionRate`.
 
-For one distributor, HWC’s $750 managed pilot reviews an authorized category of up to 500 SKUs and returns an editable findings file plus five worked examples with source evidence. [Scope the $750 pilot](https://hunterworkflowconsulting.com/data-audits?utm_source=github&utm_medium=worked_example&utm_campaign=oro_product_unit_review#catalog)
+For one distributor, HWC’s $750 managed pilot reviews an authorized category of up to 500 source rows and returns an editable findings file plus five worked examples with source evidence. [Scope the $750 pilot](https://hunterworkflowconsulting.com/data-audits?utm_source=github&utm_medium=worked_example&utm_campaign=oro_product_unit_review#catalog)
 
 ## Recheck three fictional releases
 

@@ -1,0 +1,27 @@
+name: Test price keys in Estuary Flow
+on:
+  push:
+    paths:
+      - 'examples/price-import-key/**'
+      - '.github/workflows/flow-price-key.yml'
+  pull_request:
+    paths:
+      - 'examples/price-import-key/**'
+      - '.github/workflows/flow-price-key.yml'
+permissions:
+  contents: read
+jobs:
+  catalog-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Run four local collection tests with flowctl 0.6.16
+        shell: bash
+        run: |
+          curl --fail --silent --show-error --location --retry 2 -o "$RUNNER_TEMP/flowctl" \
+            https://github.com/estuary/flow/releases/download/v0.6.16/flowctl-x86_64-linux
+          echo "a9be844e3903f3e5350c7fbf2ab03bf35fb7b984d54d83ba41bb83f799be791a  $RUNNER_TEMP/flowctl" | sha256sum --check
+          chmod +x "$RUNNER_TEMP/flowctl"
+          python3 examples/price-import-key/flow_catalog.py > "$RUNNER_TEMP/prices.flow.json"
+          "$RUNNER_TEMP/flowctl" raw test --source "$RUNNER_TEMP/prices.flow.json"

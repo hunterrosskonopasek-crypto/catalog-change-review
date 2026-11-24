@@ -24,6 +24,17 @@ Both tables accept every input row. With `PRIMARY KEY (part_number)`, the second
 
 With `PRIMARY KEY (price_list, part_number, selling_unit, effective_date)`, all four rows survive. The March carton row quotes $32.00, so three cartons total $96.00. The script also reimports and reverses the feed. Both operations preserve all four prices with this key. Reversing the feed changes which price survives with the SKU key. [SQLite UPSERT](https://sqlite.org/lang_upsert.html)
 
-Estuary documents the same design question for collections. Its schema describes valid documents, and its key groups them using one or more JSON pointers. For this fixture, those pointers would be `[/price_list, /part_number, /selling_unit, /effective_date]`. This demonstration runs in local SQLite. [Estuary collection keys](https://docs.estuary.dev/concepts/collections/#keys)
+## Test the same keys in Estuary Flow
+
+The [catalog generator](flow_catalog.py) reads the same four rows and writes a self-contained Flow catalog. With Python 3 and [flowctl 0.6.16](https://github.com/estuary/flow/releases/tag/v0.6.16) on Linux or macOS, run these commands from the repository root.
+
+```sh
+python3 examples/price-import-key/flow_catalog.py > prices.flow.json
+flowctl raw test --source prices.flow.json
+```
+
+Flow groups documents by the collection key when reducing them. Here each schema selects `lastWriteWins`, and each input arrives in its own transaction. A part-number key yields one reduced price. Reversing the transactions changes which price survives. The four-field key keeps all four offers in the reduced result even when the records arrive twice in opposite orders. A later correction to the March carton from $32.00 to $33.50 changes just that offer. Three March cartons then cost $100.50.
+
+The local harness checks reduced collection contents in memory. Flow collections retain an append-only history. This exercise uses fictional inputs and performs no capture, external materialization or cloud publication. [Collection keys](https://docs.estuary.dev/concepts/collections/#keys) · [Upstream test harness](https://github.com/estuary/flow/blob/v0.6.16/crates/catalog-tests/README.md)
 
 HWC created these rows for its [interactive price replay](https://hunterworkflowconsulting.com/contract-price-replay).

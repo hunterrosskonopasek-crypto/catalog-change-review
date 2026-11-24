@@ -14,8 +14,8 @@ The screen flags blank or repeated exact SKUs, GTIN format and check-digit error
 
 | File | Bytes | SHA-256 |
 | --- | ---: | --- |
-| Offline ZIP | 8,665 | `4347fdf05e0487a9593cbea1df7863e90e97b6e9f778738ac4a87ac3bb2ac649` |
-| Extracted HTML | 23,213 | `9ac2572fe5d057a8cbb0c8d62aa39d826b472517b56d688736b9255aba3d129c` |
+| Offline ZIP | 8,821 | `072c5634e81e40dc30ad0ec400681260be6de7009121129e4059c0d6e3ec0731` |
+| Extracted HTML | 23,578 | `e15f60955973ab1a447e377dd779fa21299355f045c846676f659c409d2afbe0` |
 
 The [single-file HTML source](HWC-Free-25-SKU-Diagnostic.html) also contains its license notice. This free offline edition is distributed under [the repository’s MIT license](../../LICENSE).
 

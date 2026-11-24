@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-8NFR1HMe7C9hLcYEiQWDUnFKfE8Z6h22b2+ZaCjKszE='; style-src 'sha256-xKii1Hnk4PSe/Y5W2Xn1Hs4s9BuovEEZEpix3pOCes0='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yEs2/+DaRmrhBNZ6dSmSKIdMRQ740j75D5BBsuepswQ='; style-src 'sha256-xKii1Hnk4PSe/Y5W2Xn1Hs4s9BuovEEZEpix3pOCes0='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>Free 25-SKU diagnostic · HWC offline edition</title>
@@ -90,6 +90,7 @@ SOFTWARE.
 <button type="button" class="quiet" id="download-report">Download report (.txt)</button>
 <button type="button" class="quiet" id="download-review">Download review worksheet (.csv)</button>
 <p>The worksheet includes source values and one row per finding. Assign a reviewer and record the approved change. Import SKU and value columns as text to retain leading zeros. With no findings, the worksheet contains only the headings.</p>
+<p id="managed-review">HWC offers a $750 review of one buyer-authorized product family covering up to 500 source rows. Your CSV and results stay on your device. To request a written scope, open <code>https://hunterworkflowconsulting.com/data-audits#catalog</code> in your browser.</p>
 </section></main>
 <footer>Hunter &amp; Co. Workflow Consulting · Offline edition</footer>
 <script>
@@ -406,7 +407,8 @@ function startFreeDiagnostic() {
   }
   el('download-report').addEventListener('click', () => {
     if (!result) return;
-    download(formatReport(result, isExample), 'text/plain;charset=utf-8',
+    const report = formatReport(result, isExample) + '\r\n' + el('managed-review').textContent + '\r\n';
+    download(report, 'text/plain;charset=utf-8',
       isExample ? 'HWC-fictional-25-SKU-example.txt' : 'HWC-25-SKU-diagnostic.txt');
   });
   el('download-review').addEventListener('click', () => {

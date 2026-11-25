@@ -32,6 +32,13 @@ jobs:
             selling_unit
             effective_date
           compare-columns: usd_per_selling_unit
+      - name: Read Windows line endings in workflow inputs
+        uses: ./
+        with:
+          before: examples/price-import-key/prices.csv
+          after: examples/price-import-key/prices.csv
+          key-columns: ${{ fromJSON('"price_list\r\npart_number\r\nselling_unit\r\neffective_date\r\n"') }}
+          compare-columns: ${{ fromJSON('"pieces_per_selling_unit\r\nusd_per_selling_unit\r\n"') }}
       - name: Verify one changed carton price is reported
         shell: bash
         run: |

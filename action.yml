@@ -30,9 +30,11 @@ runs:
       run: |
         options=(--fail-on-change)
         while IFS= read -r column; do
+          column=${column%$'\r'}
           if [[ -n "$column" ]]; then options+=("--key=$column"); fi
         done <<< "$KEY_COLUMNS"
         while IFS= read -r column; do
+          column=${column%$'\r'}
           if [[ -n "$column" ]]; then options+=("--field=$column"); fi
         done <<< "$COMPARE_COLUMNS"
         python3 "$GITHUB_ACTION_PATH/review.py" "${options[@]}" -- "$BEFORE_FILE" "$AFTER_FILE"

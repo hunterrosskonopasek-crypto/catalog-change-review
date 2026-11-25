@@ -62,7 +62,7 @@ class ReleaseReviewTest(unittest.TestCase):
         second, report = self.run_review("second", first)
         cases = {item["identifier"]: item for item in report["items"]}
         self.assertEqual((cases["A"]["reason"], cases["A"]["after_records"]), ("ambiguous_key", [1, 2]))
-        self.assertEqual((cases["B"]["status"], cases["B"]["reason"]), ("changed", "removed"))
+        self.assertEqual((cases["B"]["status"], cases["B"]["reason"]), ("identity_unresolved", "possible_incomplete_identity"))
         self.assertEqual((cases["EXTRA"]["status"], cases["EXTRA"]["reason"]), ("identity_unresolved", "identity_not_confirmed"))
         self.assertTrue(all(not x["decision"] for x in cases.values()))
         self.assertEqual(report["unidentified_rows"][0]["after_records"], [3])
@@ -129,6 +129,33 @@ class ReleaseReviewTest(unittest.TestCase):
         first.write_text(json.dumps(saved), encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "compound identifier"):
             review("bad-key.json", first)
+
+    def test_partial_price_key_holds_only_compatible_additions_and_removals(self):
+        header = "sku,date,price\n"
+        self.before.write_text(header + "0007,March,32\n0008,March,34\n0009,,10\n", encoding="utf-8")
+        self.after.write_text(header + "0009,April,10\n", encoding="utf-8")
+        first = self.directory / "first.json"
+        second = self.directory / "second.json"
+        options = {"key": ("sku", "date"), "fields": ("price",)}
+        compare(self.before, self.after, review_out=first, **options)
+        saved = json.loads(first.read_text())
+        for item in saved["items"]:
+            if item["reason"] == "removed":
+                item["decision"] = "Retire the March price"
+        first.write_text(json.dumps(saved), encoding="utf-8")
+        self.after.write_text(header + "0009,April,10\n0007, ,32\n", encoding="utf-8")
+        compare(self.before, self.after, review_out=second, prior_review=first, **options)
+        report = json.loads(second.read_text())
+        items = {tuple(item["identifier"]): item for item in report["items"]}
+        returned = items["0007", "March"]
+        self.assertEqual((returned["status"], returned["decision"], returned["previous_decision"]),
+                         ("identity_unresolved", "", "Retire the March price"))
+        self.assertEqual(items["0008", "March"]["decision"], "Retire the March price")
+        self.assertEqual(items["0009", "April"]["reason"], "possible_incomplete_identity")
+
+        self.before.write_text(header + "0007,March,32\n0008,March,34\n0010,,10\n", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "same format"):
+            compare(self.before, self.after, review_out=self.directory / "third.json", prior_review=second, **options)
 
     def test_four_column_price_example_through_cli(self):
         sample = Path(__file__).parent / "examples" / "price-import-key"

@@ -14,7 +14,7 @@ class Record:
     fields: tuple
 
 
-def read_snapshot(path, key, fields):
+def read_snapshot(path, key, fields, *, incomplete=None):
     keys = (key,) if isinstance(key, str) else tuple(key)
     groups = defaultdict(list)
     blanks = []
@@ -35,6 +35,8 @@ def read_snapshot(path, key, fields):
             components = tuple(row[i] for i in key_indices)
             if any(not value.strip() for value in components):
                 blanks.append(number)
+                if incomplete is not None:
+                    incomplete.append((components, tuple(row[i] for i in indices)))
             else:
                 identifier = components[0] if len(keys) == 1 else components
                 groups[identifier].append(Record(number, tuple(row[i] for i in indices)))
@@ -49,8 +51,10 @@ def compare(before, after, key="sku", fields=("selling_unit", "pack_qty"), *,
     if not keys or not fields or len(set((*keys, *fields))) != len(keys) + len(fields):
         raise ValueError("Choose distinct key columns and separate fields to compare.")
     key = keys[0] if len(keys) == 1 else keys
-    left, left_blanks = read_snapshot(before, key, fields)
-    right, right_blanks = read_snapshot(after, key, fields)
+    left_incomplete = [] if review_out is not None else None
+    right_incomplete = [] if review_out is not None else None
+    left, left_blanks = read_snapshot(before, key, fields, incomplete=left_incomplete)
+    right, right_blanks = read_snapshot(after, key, fields, incomplete=right_incomplete)
     findings = []
 
     def add(kind, old_rows, new_rows, changed=()):
@@ -82,7 +86,8 @@ def compare(before, after, key="sku", fields=("selling_unit", "pack_qty"), *,
     }
     if review_out is not None:
         from release_review import write_review
-        write_review(review_out, prior_review, key, fields, left, right, left_blanks, report)
+        write_review(review_out, prior_review, key, fields, left, right, left_blanks, report,
+                     left_incomplete, right_incomplete)
     return report
 
 

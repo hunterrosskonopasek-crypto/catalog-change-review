@@ -1,5 +1,5 @@
 """Private, optional comparison of successive proposals against a fixed reference."""
-from collections import Counter
+from collections import Counter, defaultdict
 import hashlib
 import json
 import os
@@ -12,11 +12,27 @@ CLOSED = {"closed", "still_closed"}
 UNRESOLVED = "identity_unresolved"
 
 
-def baseline_hash(groups, blanks):
+def baseline_hash(groups, blanks, incomplete=None):
     # Record positions may change. Exact IDs, values, and multiplicity must agree.
     records = [(sku, sorted(row.fields for row in groups[sku])) for sku in sorted(groups)]
-    data = json.dumps([len(blanks), records], separators=(",", ":")).encode("ascii")
+    content = [len(blanks), records]
+    if incomplete is not None:
+        content.append(sorted(incomplete))
+    data = json.dumps(content, separators=(",", ":")).encode("ascii")
     return hashlib.sha256(data).hexdigest()
+
+
+def incomplete_key_index(rows):
+    index = defaultdict(set)
+    for components, _ in rows:
+        present = tuple(i for i, value in enumerate(components) if value.strip())
+        index[present].add(tuple(components[i] for i in present))
+    return index
+
+
+def could_match_incomplete(identifier, index):
+    components = (identifier,) if isinstance(identifier, str) else identifier
+    return any(tuple(components[i] for i in present) in values for present, values in index.items())
 
 
 def load_prior(path, scope):
@@ -73,10 +89,11 @@ def write_new(path, report):
         Path(temp.name).unlink()
 
 
-def write_review(path, prior_path, key, fields, left, right, blanks, report):
+def write_review(path, prior_path, key, fields, left, right, blanks, report, left_incomplete, right_incomplete):
     single_key = isinstance(key, str)
     scope = {"version": 1 if single_key else 2, "key": key if single_key else list(key),
-             "fields": list(fields), "approved_sha256": baseline_hash(left, blanks)}
+             "fields": list(fields),
+             "approved_sha256": baseline_hash(left, blanks, None if single_key else left_incomplete)}
     prior = load_prior(prior_path, scope)
     left_ids = {row.number: sku for sku, rows in left.items() for row in rows}
     right_ids = {row.number: sku for sku, rows in right.items() for row in rows}
@@ -90,6 +107,8 @@ def write_review(path, prior_path, key, fields, left, right, blanks, report):
         findings[sku] = finding
 
     uncertain_ids = bool(missing or report["counts"].get("ambiguous_key"))
+    incomplete_before = incomplete_key_index(left_incomplete)
+    incomplete_after = incomplete_key_index(right_incomplete)
     items = []
     for sku in dict.fromkeys((*findings, *prior)):
         finding = findings.get(sku)
@@ -100,6 +119,11 @@ def write_review(path, prior_path, key, fields, left, right, blanks, report):
                 "after_records": [r.number for r in proposed], "decision": ""}
         if finding and finding["reason"] == "ambiguous_key":
             item.update(status=UNRESOLVED, reason="ambiguous_key")
+        elif finding and (
+            (finding["reason"] == "removed" and could_match_incomplete(sku, incomplete_after)) or
+            (finding["reason"] == "added" and could_match_incomplete(sku, incomplete_before))
+        ):
+            item.update(status=UNRESOLVED, reason="possible_incomplete_identity")
         elif finding:
             evidence = {"reason": finding["reason"],
                         "approved_values": list(approved[0].fields) if approved else None,

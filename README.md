@@ -79,7 +79,7 @@ In the first JSON file, edit only the `decision` string on a uniquely identified
 | `unchanged` | The identifier, reason and selected before/after values match. The previous decision carries forward. |
 | `changed` or `reopened` | Evidence changed or a previously closed difference returned. The new decision is blank. |
 | `closed` or `still_closed` | The records now agree on the selected fields, or a formerly extra identifier is absent from both complete snapshots. The reason distinguishes these cases. |
-| `identity_unresolved` | Duplicate identifiers prevent a match, or unidentified/duplicate rows leave the disappearance of a formerly extra identifier uncertain. |
+| `identity_unresolved` | A duplicate key prevents a match, an incomplete key could explain an apparent addition or removal, or unidentified rows leave an earlier discrepancy uncertain. Consult the source before carrying a decision forward. |
 
 Blank IDs are reported individually in `unidentified_rows` and never inherit a decision. Reordering rows is supported. A different key, field selection or approved keyed data starts a new review history. Changes outside the selected fields are outside the comparison. For a worked sequence, see the [fictional Oro unit releases](examples/orocommerce-product-units/README.md#recheck-three-fictional-releases).
 

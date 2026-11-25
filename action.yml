@@ -1,5 +1,5 @@
 name: HWC Catalog Change Review
-description: Compare two catalog CSV snapshots by exact SKU and report changed records for review.
+description: Compare two catalog CSV snapshots by exact SKU or an ordered set of key columns.
 author: Hunter & Co. Workflow Consulting
 branding:
   icon: check-square
@@ -11,6 +11,12 @@ inputs:
   after:
     description: Proposed complete UTF-8 CSV in the same SKU namespace
     required: true
+  key-columns:
+    description: Columns identifying one record, one name per line. Defaults to sku.
+    required: false
+  compare-columns:
+    description: Fields to compare, one name per line. Defaults to selling_unit and pack_qty.
+    required: false
 runs:
   using: composite
   steps:
@@ -19,4 +25,14 @@ runs:
       env:
         BEFORE_FILE: ${{ inputs.before }}
         AFTER_FILE: ${{ inputs.after }}
-      run: python3 "$GITHUB_ACTION_PATH/review.py" --fail-on-change -- "$BEFORE_FILE" "$AFTER_FILE"
+        KEY_COLUMNS: ${{ inputs.key-columns }}
+        COMPARE_COLUMNS: ${{ inputs.compare-columns }}
+      run: |
+        options=(--fail-on-change)
+        while IFS= read -r column; do
+          if [[ -n "$column" ]]; then options+=("--key=$column"); fi
+        done <<< "$KEY_COLUMNS"
+        while IFS= read -r column; do
+          if [[ -n "$column" ]]; then options+=("--field=$column"); fi
+        done <<< "$COMPARE_COLUMNS"
+        python3 "$GITHUB_ACTION_PATH/review.py" "${options[@]}" -- "$BEFORE_FILE" "$AFTER_FILE"

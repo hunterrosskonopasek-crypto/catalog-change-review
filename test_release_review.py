@@ -89,6 +89,66 @@ class ReleaseReviewTest(unittest.TestCase):
             self.run_review("other", first)
         self.assertFalse((self.directory / "other.json").exists())
 
+    def test_compound_key_carries_only_same_record_and_values(self):
+        def snapshot(path, rows):
+            with path.open("w", newline="", encoding="utf-8") as dest:
+                writer = csv.writer(dest)
+                writer.writerow(["vendor", "sku", "pack"])
+                writer.writerows(rows)
+
+        def review(name, prior=None, keys=("vendor", "sku")):
+            path = self.directory / name
+            compare(self.before, self.after, key=keys, fields=["pack"], review_out=path, prior_review=prior)
+            return path, json.loads(path.read_text(encoding="utf-8"))
+
+        approved = [("V|A", "01", "6"), ("V", "A|01", "6"), ("V", "01", "6"), ("V", "1", "6")]
+        proposed = [(vendor, sku, "4") for vendor, sku, _ in approved]
+        snapshot(self.before, approved)
+        snapshot(self.after, proposed)
+        first, saved = review("first.json")
+        self.assertEqual(saved["scope"]["key"], ["vendor", "sku"])
+        self.assertEqual(saved["counts"], {"new": 4})
+        for item in saved["items"]:
+            item["decision"] = "row " + str(item["before_records"][0])
+        first.write_text(json.dumps(saved), encoding="utf-8")
+        snapshot(self.before, approved[::-1])
+        snapshot(self.after, [proposed[2], proposed[1], ("V|A", "01", "8"), proposed[3], proposed[3], ("V", " ", "4")])
+        second, current = review("second.json", first)
+        items = {tuple(item["identifier"]): item for item in current["items"]}
+        self.assertEqual(items["V", "A|01"]["decision"], "row 2")
+        self.assertEqual(items["V", "01"]["decision"], "row 3")
+        self.assertEqual(items["V|A", "01"]["status"], "changed")
+        self.assertEqual(items["V|A", "01"]["decision"], "")
+        self.assertEqual(items["V", "1"]["reason"], "ambiguous_key")
+        self.assertEqual(items["V", "1"]["decision"], "")
+        self.assertEqual(current["unidentified_rows"][0]["after_records"], [6])
+        with self.assertRaisesRegex(ValueError, "same format"):
+            review("wrong-order.json", second, keys=("sku", "vendor"))
+
+        saved["items"][0]["identifier"] = ["V", ""]
+        first.write_text(json.dumps(saved), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "compound identifier"):
+            review("bad-key.json", first)
+
+    def test_four_column_price_example_through_cli(self):
+        sample = Path(__file__).parent / "examples" / "price-import-key"
+        args = [str(sample / "prices.csv"), str(sample / "proposed-prices.csv")]
+        for key in ("price_list", "part_number", "selling_unit", "effective_date"):
+            args.extend(("--key", key))
+        out_file = self.directory / "private.json"
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            result = main([*args, "--field", "usd_per_selling_unit", "--fail-on-change", "--review-out", str(out_file)])
+        self.assertEqual(result, 1)
+        report = json.loads(stdout.getvalue())
+        self.assertEqual(report["counts"], {"changed": 1})
+        self.assertEqual(report["findings"][0], {"reason": "changed", "before_records": [3], "after_records": [2],
+                                                  "changed_columns": ["usd_per_selling_unit"]})
+        self.assertNotIn("HWC-CLIP-20", stdout.getvalue())
+        item = json.loads(out_file.read_text())["items"][0]
+        self.assertEqual(item["identifier"], ["HWC-DEMO", "HWC-CLIP-20", "carton", "2027-03-01"])
+        self.assertEqual((item["approved_values"], item["proposed_values"]), (["32.00"], ["1.80"]))
+
     def test_documented_oro_sequence_and_cli_privacy(self):
         sample = Path(__file__).parent / "examples" / "orocommerce-product-units"
         fields = ["primaryUnitPrecision.sell", "additionalUnitPrecisions:0:precision",

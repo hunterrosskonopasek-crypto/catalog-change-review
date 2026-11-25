@@ -1,0 +1,5 @@
+effective_date,price_list,part_number,selling_unit,pieces_per_selling_unit,usd_per_selling_unit
+2027-03-01,HWC-DEMO,HWC-CLIP-20,each,1,1.80
+2027-03-01,HWC-DEMO,HWC-CLIP-20,carton,20,1.80
+2027-02-01,HWC-DEMO,HWC-CLIP-20,each,1,1.65
+2027-02-01,HWC-DEMO,HWC-CLIP-20,carton,20,30.00

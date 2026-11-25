@@ -33,7 +33,14 @@ def load_prior(path, scope):
         if not isinstance(item, dict):
             raise ValueError("Invalid previous review item.")
         sku, state = item.get("identifier"), item.get("status")
-        if (not isinstance(sku, str) or not sku.strip() or sku in prior or
+        if isinstance(scope["key"], list):
+            if (not isinstance(sku, list) or len(sku) != len(scope["key"]) or
+                    not all(isinstance(value, str) and value.strip() for value in sku)):
+                raise ValueError("Invalid compound identifier in the previous review.")
+            sku = tuple(sku)
+        elif not isinstance(sku, str) or not sku.strip():
+            raise ValueError("Invalid identifier in the previous review.")
+        if (sku in prior or
                 not isinstance(state, str) or state not in ACTIVE | CLOSED | {UNRESOLVED} or
                 not isinstance(item.get("decision"), str)):
             raise ValueError("Invalid or repeated identifier, status or decision in the previous review.")
@@ -67,7 +74,9 @@ def write_new(path, report):
 
 
 def write_review(path, prior_path, key, fields, left, right, blanks, report):
-    scope = {"version": 1, "key": key, "fields": list(fields), "approved_sha256": baseline_hash(left, blanks)}
+    single_key = isinstance(key, str)
+    scope = {"version": 1 if single_key else 2, "key": key if single_key else list(key),
+             "fields": list(fields), "approved_sha256": baseline_hash(left, blanks)}
     prior = load_prior(prior_path, scope)
     left_ids = {row.number: sku for sku, rows in left.items() for row in rows}
     right_ids = {row.number: sku for sku, rows in right.items() for row in rows}

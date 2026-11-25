@@ -15,6 +15,7 @@ class Record:
 
 
 def read_snapshot(path, key, fields):
+    keys = (key,) if isinstance(key, str) else tuple(key)
     groups = defaultdict(list)
     blanks = []
     with path.open("r", encoding="utf-8-sig", newline="") as source:
@@ -22,19 +23,20 @@ def read_snapshot(path, key, fields):
         headers = next(rows, [])
         if not headers or any(not h.strip() for h in headers) or len(set(headers)) != len(headers):
             raise ValueError("Each file needs unique, nonblank column names.")
-        if any(name not in headers for name in (key, *fields)):
+        if any(name not in headers for name in (*keys, *fields)):
             raise ValueError("A required column is missing from a snapshot.")
-        key_index = headers.index(key)
+        key_indices = [headers.index(name) for name in keys]
         indices = [headers.index(name) for name in fields]
         for number, row in enumerate(rows, 1):
             if not row:
                 continue
             if len(row) != len(headers):
                 raise ValueError(f"A row has the wrong column count at data record {number}.")
-            identifier = row[key_index]
-            if not identifier.strip():
+            components = tuple(row[i] for i in key_indices)
+            if any(not value.strip() for value in components):
                 blanks.append(number)
             else:
+                identifier = components[0] if len(keys) == 1 else components
                 groups[identifier].append(Record(number, tuple(row[i] for i in indices)))
     return groups, blanks
 
@@ -43,8 +45,10 @@ def compare(before, after, key="sku", fields=("selling_unit", "pack_qty"), *,
             review_out=None, prior_review=None):
     if prior_review is not None and review_out is None:
         raise ValueError("--prior-review requires a new --review-out file.")
-    if not fields or len(set((key, *fields))) != 1 + len(fields):
-        raise ValueError("Choose one key and distinct fields other than the key.")
+    keys = (key,) if isinstance(key, str) else tuple(key)
+    if not keys or not fields or len(set((*keys, *fields))) != len(keys) + len(fields):
+        raise ValueError("Choose distinct key columns and separate fields to compare.")
+    key = keys[0] if len(keys) == 1 else keys
     left, left_blanks = read_snapshot(before, key, fields)
     right, right_blanks = read_snapshot(after, key, fields)
     findings = []
@@ -86,14 +90,14 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("before", type=Path)
     parser.add_argument("after", type=Path)
-    parser.add_argument("--key", default="sku")
+    parser.add_argument("--key", action="append", help="Repeat in order for a multi-column key. Default: sku.")
     parser.add_argument("--field", action="append", help="Repeat for each compared column.")
     parser.add_argument("--fail-on-change", action="store_true", help="Exit with status 1 for any finding.")
     parser.add_argument("--review-out", type=Path, help="Write a new private, editable release review JSON file.")
     parser.add_argument("--prior-review", type=Path, help="Carry matching decisions from an earlier --review-out file.")
     args = parser.parse_args(argv)
     try:
-        report = compare(args.before, args.after, args.key, args.field or ("selling_unit", "pack_qty"),
+        report = compare(args.before, args.after, args.key or "sku", args.field or ("selling_unit", "pack_qty"),
                          review_out=args.review_out, prior_review=args.prior_review)
     except (OSError, UnicodeError, ValueError, csv.Error) as exc:
         message = str(exc) if isinstance(exc, ValueError) and not isinstance(exc, UnicodeError) else "Could not read a valid UTF-8 CSV snapshot."

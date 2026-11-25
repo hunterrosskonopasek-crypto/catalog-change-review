@@ -9,6 +9,22 @@ A distributor sells cable clip `HWC-CLIP-20` individually and in cartons of 20. 
 
 ## Reproduce the import
 
+First, use the two exports to locate the difference a reviewer would have to explain.
+
+### Compare two price exports
+
+The [proposed feed](proposed-prices.csv) reorders the four records and assigns the March carton the individual clip’s price. From the repository root, use the current source checkout:
+
+```sh
+python3 review.py examples/price-import-key/prices.csv examples/price-import-key/proposed-prices.csv --key price_list --key part_number --key selling_unit --key effective_date --field usd_per_selling_unit
+```
+
+The one changed record moves from row 3 in the approved export to row 2 in the proposal. Its carton price moves from $32.00 to $1.80. Three cartons would total $5.40 against the approved $96.00. The March individual clip and both February records keep their prices.
+
+To run this comparison in GitHub Actions, supply those four column names on successive lines of `key-columns` and set `compare-columns` to `usd_per_selling_unit` on a revision that includes compound keys. Each duplicate full key or incomplete identifier still goes to review.
+
+### Test the import in SQLite
+
 From the repository root, run the [Python and SQLite example](replay.py). It uses Python 3.8 or later with SQLite 3.24 or later, reads the bundled CSV, and creates two in-memory tables.
 
 ```sh

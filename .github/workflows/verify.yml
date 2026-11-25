@@ -21,3 +21,23 @@ jobs:
           status=0
           python3 review.py --fail-on-change examples/before.csv examples/after.csv || status=$?
           test "$status" = 1
+      - name: Compare four unchanged price records sharing one part number
+        uses: ./
+        with:
+          before: examples/price-import-key/prices.csv
+          after: examples/price-import-key/prices.csv
+          key-columns: |
+            price_list
+            part_number
+            selling_unit
+            effective_date
+          compare-columns: usd_per_selling_unit
+      - name: Verify one changed carton price is reported
+        shell: bash
+        run: |
+          status=0
+          python3 review.py --key price_list --key part_number --key selling_unit --key effective_date \
+            --field usd_per_selling_unit --fail-on-change examples/price-import-key/prices.csv \
+            examples/price-import-key/proposed-prices.csv > "$RUNNER_TEMP/price-review.json" || status=$?
+          test "$status" = 1
+          python3 -c 'import json, sys; assert json.load(open(sys.argv[1]))["counts"] == {"changed": 1}' "$RUNNER_TEMP/price-review.json"

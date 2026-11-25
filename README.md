@@ -99,6 +99,22 @@ On a Linux runner with Python 3 and your repository already checked out, add thi
 
 The action reports JSON and fails the step on any finding so a reviewer can decide whether to proceed. The local CLI exits successfully with findings unless you add `--fail-on-change`. Exit status 2 indicates invalid input.
 
+For a distributor price export with multiple prices per SKU, use the revision below and the key fields agreed with the catalog owner. This example checks the price per selling unit and retains the original CSV record numbers.
+
+```yaml
+- name: Check distributor price changes
+  uses: hunterrosskonopasek-crypto/catalog-change-review@2f2efd9ca0087186dab89a222c606ba5719d7e90
+  with:
+    before: catalog/approved-prices.csv
+    after: catalog/proposed-prices.csv
+    key-columns: |
+      price_list
+      part_number
+      selling_unit
+      effective_date
+    compare-columns: usd_per_selling_unit
+```
+
 Run the test suite with `python3 -m unittest -v`.
 
 ## When a change needs a human decision

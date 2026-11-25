@@ -48,3 +48,30 @@ jobs:
             examples/price-import-key/proposed-prices.csv > "$RUNNER_TEMP/price-review.json" || status=$?
           test "$status" = 1
           python3 -c 'import json, sys; assert json.load(open(sys.argv[1]))["counts"] == {"changed": 1}' "$RUNNER_TEMP/price-review.json"
+      - name: Install the published action by its immutable commit
+        uses: hunterrosskonopasek-crypto/catalog-change-review@2f2efd9ca0087186dab89a222c606ba5719d7e90
+        with:
+          before: examples/price-import-key/prices.csv
+          after: examples/price-import-key/prices.csv
+          key-columns: |
+            price_list
+            part_number
+            selling_unit
+            effective_date
+          compare-columns: usd_per_selling_unit
+      - name: Detect the changed price using the installed action
+        id: proposed_price
+        continue-on-error: true
+        uses: hunterrosskonopasek-crypto/catalog-change-review@2f2efd9ca0087186dab89a222c606ba5719d7e90
+        with:
+          before: examples/price-import-key/prices.csv
+          after: examples/price-import-key/proposed-prices.csv
+          key-columns: |
+            price_list
+            part_number
+            selling_unit
+            effective_date
+          compare-columns: usd_per_selling_unit
+      - name: Confirm the installed action flagged the changed export
+        shell: bash
+        run: test "${{ steps.proposed_price.outcome }}" = failure

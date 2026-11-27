@@ -1,5 +1,5 @@
 name: HWC Catalog Change Review
-description: Compare two catalog CSV snapshots by exact SKU or an ordered set of key columns.
+description: Pre-import CI/CD gate for B2B PIM and ERP feeds. Check catalog keys, selling units and pack sizes before import.
 author: Hunter & Co. Workflow Consulting
 branding:
   icon: check-square

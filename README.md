@@ -1,6 +1,17 @@
 # Catalog Change Review
 
+**Pre-Import CI/CD Gate for B2B PIM & ERP Feeds**
+
 Catch a case-pack change before a distributor imports its next feed. This tool compares two complete UTF-8 CSV snapshots from the same seller and flags new or removed SKUs, changed pack or selling-unit fields, blank keys, and keys that appear more than once. It runs with Python 3.8 or later using the standard library. Your files stay on the machine where you run it.
+
+Run the Action between export and import, with the approved file as the baseline. A proposed carton of eight against an approved pack of six stops the workflow for a release decision. The CLI writes a JSON report to standard output. With `--fail-on-change`, a finding exits 1 and invalid input exits 2.
+
+If a comparison finds **more than 50 key-validation errors**, or its schema identifies **multiple ERP systems**, the CLI and Action print two options to standard error.
+
+- **One upcoming import.** HWC reviews one authorized product family of up to 500 source rows for $750. Delivery takes five business days from the agreed start after payment clears and HWC accepts the files. Sign the production remediation contract within 14 calendar days of delivery to receive the $750 credit. [Request the Direct Catalog Review](https://hunterworkflowconsulting.com/data-audits#catalog)
+- **Recurring releases.** Catalog Check Pro compares up to 5,000 SKUs and exports a change log for $149/month. [Open Catalog Check Pro](https://hwc-catalog-check-pro.marinegnome.chatgpt.site/)
+
+Each missing key record and each ambiguous key group counts once per finding. Intentional additions, removals or field changes still trigger the existing release gate. Multi-ERP detection reads distinct system labels in `source_erp` or `erp_system` and recognizes explicit SAP, NetSuite, Acumatica, Odoo and Dynamics identifier headers (for example, `sap_material_number` and `netsuite_internal_id`). Company-specific schemas may use different names. A matching multi-ERP file with zero findings retains its successful exit status.
 
 **Handing a Shopify feed back to a merchant?** [Inspect two example worksheets](https://hunterworkflowconsulting.com/agency-catalog-trial#worked). In a fictional 100-row export, a supplier reference supports changing one glass pack from six to four. A different variant has both four and twelve in its references and stays on the merchant’s decision list.
 
@@ -32,7 +43,7 @@ WordPress agencies can [open the catalog checker inside WordPress Playground or 
 
 [Teach a 25-minute, two-CSV verification exercise](teaching/two-csv-check/README.md). Learners can use a spreadsheet or paper to trace a pack change, a repeated identifier and a missing value. The facilitator key includes the source records and the Python results.
 
-[Download the v1.0.1 source ZIP](https://github.com/hunterrosskonopasek-crypto/catalog-change-review/archive/refs/tags/v1.0.1.zip), unzip it and open the folder that contains `review.py`. Run the example from that folder.
+[Download the v1.1.0 source ZIP](https://github.com/hunterrosskonopasek-crypto/catalog-change-review/archive/refs/tags/v1.1.0.zip), unzip it and open the folder that contains `review.py`. Run the example from that folder.
 
 ```sh
 python3 review.py examples/before.csv examples/after.csv
@@ -91,7 +102,7 @@ On a Linux runner with Python 3 and your repository already checked out, add thi
 
 ```yaml
 - name: Check catalog changes
-  uses: hunterrosskonopasek-crypto/catalog-change-review@v1.0.1
+  uses: hunterrosskonopasek-crypto/catalog-change-review@v1.1.0
   with:
     before: catalog/approved.csv
     after: catalog/proposed.csv

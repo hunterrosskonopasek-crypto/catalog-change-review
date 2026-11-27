@@ -1,5 +1,6 @@
 import contextlib
 import io
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -52,6 +53,44 @@ class SnapshotTest(unittest.TestCase):
         self.left.write_text("sku,sku,pack_qty\nA,A,6", encoding="utf-8")
         with self.assertRaises(ValueError):
             compare(self.left, self.right)
+
+    def run_gate(self):
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            status = main(["--fail-on-change", str(self.left), str(self.right)])
+        return status, json.loads(stdout.getvalue()), stderr.getvalue()
+
+    def test_key_error_threshold_and_ordinary_changes(self):
+        for count in (50, 51):
+            with self.subTest(count=count):
+                self.files("", ",case,6\n" * count)
+                status, report, notice = self.run_gate()
+                self.assertEqual(status, 1)
+                self.assertEqual(report["counts"], {"missing_key": count})
+                self.assertEqual("$750" in notice, count > 50)
+                self.assertEqual("$149/month" in notice, count > 50)
+        self.files("", "".join(f"K{i},case,6\n" for i in range(60)))
+        self.assertEqual(self.run_gate()[2], "")
+
+    def test_multi_erp_schema_notice_preserves_clean_gate_and_report(self):
+        for headers, rows, expected in [
+            ("sap_material_number,netsuite_internal_id", "A,0042,7", True),
+            ("source_erp", "A,NetSuite\nB,SAP", True),
+            ("erp_system", "A,netsuite\nB,Oracle NetSuite", False),
+            ("vendor,internal_id", "A,x,42\nB,y,34", False),
+        ]:
+            with self.subTest(headers=headers):
+                data = f"sku,selling_unit,pack_qty,{headers}\n"
+                for row in rows.splitlines():
+                    sku, source = row.split(",", 1)
+                    data += f"{sku},each,1,{source}\n"
+                for path in (self.left, self.right):
+                    path.write_text(data, encoding="utf-8")
+                status, report, notice = self.run_gate()
+                self.assertEqual(status, 0)
+                self.assertEqual(report, compare(self.left, self.right))
+                self.assertEqual("multiple ERP systems" in notice, expected)
+                self.assertEqual("$149/month" in notice, expected)
 
     def test_exit_codes(self):
         self.files("K,case,6", "K,case,8")

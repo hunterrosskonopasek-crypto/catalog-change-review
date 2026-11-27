@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yEs2/+DaRmrhBNZ6dSmSKIdMRQ740j75D5BBsuepswQ='; style-src 'sha256-xKii1Hnk4PSe/Y5W2Xn1Hs4s9BuovEEZEpix3pOCes0='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-0C4VIq5WQB4S/Fhl26Poc9mTiatQC+PIRYLrNhmXyEI='; style-src 'sha256-xKii1Hnk4PSe/Y5W2Xn1Hs4s9BuovEEZEpix3pOCes0='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>Free 25-SKU diagnostic · HWC offline edition</title>
@@ -216,7 +216,10 @@ function column(headers, key) {
   return match;
 }
 function usableSpec(value) {
-  if (!/^https?:\/\//i.test(value) || /\s/.test(value)) return false;
+  // The browser URL parser repairs missing authorities and Windows path separators.
+  // Flag those source values before using the parser to validate the host and port.
+  if (!/^https?:\/\/[^/?#\\]/i.test(value)) return false;
+  if (/[\s\\\u0000-\u001f\u007f]/u.test(value) || /%(?![\da-f]{2})/i.test(value)) return false;
   try { return Boolean(new URL(value).hostname); } catch { return false; }
 }
 function diagnose(data, sku, mapping) {

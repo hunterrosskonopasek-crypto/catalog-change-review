@@ -8,20 +8,20 @@
 4. Select **Download review worksheet (.csv)** for one row per finding, including the selling SKU, source column and value, comparison fields when relevant, and spaces for a reviewer, decision and approved value. Import SKU and value columns as text to preserve leading zeros. A report with zero findings produces a worksheet containing only the headings. The built-in example produces a file named `HWC-fictional-25-SKU-review.csv`.
 5. **Clear sample** clears the working data from the page. Downloaded copies remain on your device.
 
-The screen flags blank or repeated exact SKUs, GTIN format and check-digit errors, missing selling units, missing or malformed specification addresses, and differences between supplied card and destination part numbers. A correctly formatted address still requires a source check to verify the document and its contents.
+The screen flags blank or repeated exact SKUs, GTIN format and check-digit errors, missing selling units, missing or malformed specification addresses, and differences between supplied card and destination part numbers. The checker flags missing hosts, backslashes used in place of URL slashes, and incomplete percent escapes. A correctly formatted address still requires a source check to verify the document and its contents.
 
 ## Published files
 
 | File | Bytes | SHA-256 |
 | --- | ---: | --- |
-| Offline ZIP | 8,821 | `072c5634e81e40dc30ad0ec400681260be6de7009121129e4059c0d6e3ec0731` |
-| Extracted HTML | 23,578 | `e15f60955973ab1a447e377dd779fa21299355f045c846676f659c409d2afbe0` |
+| Offline ZIP | 8,932 | `dcba700dd8156e60e20956481f2160768369fe8f323dd136ac227c116e2e391c` |
+| Extracted HTML | 23,832 | `4550e877cdbdd7e3ffc2a98a3cae55be3bd7057d74270a7aaa8d7044d6071a37` |
 
 The [single-file HTML source](HWC-Free-25-SKU-Diagnostic.html) also contains its license notice. This free offline edition is distributed under [the repository’s MIT license](../../LICENSE).
 
 ## Where the checks come from
 
-HWC adapted its public browser parser, diagnostic and sample template from the [hosted Free 25-SKU diagnostic](https://hunterworkflowconsulting.com/free-25-sku-diagnostic). The standalone edition embeds the code, interface, styles and template in one file. Its content security policy disables network connections. The row checks and report format come from the following first-party assets at the time of packaging.
+HWC adapted its public browser parser, diagnostic and sample template from the [hosted Free 25-SKU diagnostic](https://hunterworkflowconsulting.com/free-25-sku-diagnostic). The standalone edition embeds the code, interface, styles and template in one file. Its content security policy disables network connections. HWC originally adapted the row checks and report format from the following first-party assets. The current edition also validates the supplied specification address before a browser can silently repair it.
 
 | Production asset | SHA-256 |
 | --- | --- |

@@ -1,4 +1,4 @@
-"""Compare two complete UTF-8 catalog snapshots from the same SKU namespace."""
+"""Pre-Import CI/CD Gate for B2B PIM & ERP Feeds. Compare two complete UTF-8 catalog snapshots."""
 import argparse
 import csv
 from collections import Counter, defaultdict
@@ -14,7 +14,19 @@ class Record:
     fields: tuple
 
 
-def read_snapshot(path, key, fields, *, incomplete=None):
+# Only explicit ERP identifiers qualify. Generic SKU, vendor and ID columns also
+# occur in single-system exports and do not establish a cross-system schema.
+ERP_IDENTIFIERS = {
+    "sap_material_number": "sap",
+    "netsuite_internal_id": "netsuite",
+    "acumatica_inventory_id": "acumatica",
+    "odoo_product_id": "odoo",
+    "dynamics_item_number": "dynamics",
+}
+ERP_LABELS = {"sap erp": "sap", "oracle netsuite": "netsuite", "microsoft dynamics": "dynamics"}
+
+
+def read_snapshot(path, key, fields, *, incomplete=None, erp_systems=None):
     keys = (key,) if isinstance(key, str) else tuple(key)
     groups = defaultdict(list)
     blanks = []
@@ -27,11 +39,24 @@ def read_snapshot(path, key, fields, *, incomplete=None):
             raise ValueError("A required column is missing from a snapshot.")
         key_indices = [headers.index(name) for name in keys]
         indices = [headers.index(name) for name in fields]
+        erp_indices = []
+        if erp_systems is not None:
+            for index, header in enumerate(headers):
+                name = "_".join(header.lower().strip().split())
+                if name in ERP_IDENTIFIERS:
+                    erp_systems.add(ERP_IDENTIFIERS[name])
+                elif name in ("source_erp", "erp_system"):
+                    erp_indices.append(index)
         for number, row in enumerate(rows, 1):
             if not row:
                 continue
             if len(row) != len(headers):
                 raise ValueError(f"A row has the wrong column count at data record {number}.")
+            if erp_indices and len(erp_systems) < 2:
+                for index in erp_indices:
+                    label = row[index].strip().casefold()
+                    if label and label not in ("unknown", "n/a", "none"):
+                        erp_systems.add(ERP_LABELS.get(label, label))
             components = tuple(row[i] for i in key_indices)
             if any(not value.strip() for value in components):
                 blanks.append(number)
@@ -44,7 +69,7 @@ def read_snapshot(path, key, fields, *, incomplete=None):
 
 
 def compare(before, after, key="sku", fields=("selling_unit", "pack_qty"), *,
-            review_out=None, prior_review=None):
+            review_out=None, prior_review=None, erp_systems=None):
     if prior_review is not None and review_out is None:
         raise ValueError("--prior-review requires a new --review-out file.")
     keys = (key,) if isinstance(key, str) else tuple(key)
@@ -53,8 +78,8 @@ def compare(before, after, key="sku", fields=("selling_unit", "pack_qty"), *,
     key = keys[0] if len(keys) == 1 else keys
     left_incomplete = [] if review_out is not None else None
     right_incomplete = [] if review_out is not None else None
-    left, left_blanks = read_snapshot(before, key, fields, incomplete=left_incomplete)
-    right, right_blanks = read_snapshot(after, key, fields, incomplete=right_incomplete)
+    left, left_blanks = read_snapshot(before, key, fields, incomplete=left_incomplete, erp_systems=erp_systems)
+    right, right_blanks = read_snapshot(after, key, fields, incomplete=right_incomplete, erp_systems=erp_systems)
     findings = []
 
     def add(kind, old_rows, new_rows, changed=()):
@@ -101,14 +126,29 @@ def main(argv=None):
     parser.add_argument("--review-out", type=Path, help="Write a new private, editable release review JSON file.")
     parser.add_argument("--prior-review", type=Path, help="Carry matching decisions from an earlier --review-out file.")
     args = parser.parse_args(argv)
+    erp_systems = set()
     try:
         report = compare(args.before, args.after, args.key or "sku", args.field or ("selling_unit", "pack_qty"),
-                         review_out=args.review_out, prior_review=args.prior_review)
+                         review_out=args.review_out, prior_review=args.prior_review, erp_systems=erp_systems)
     except (OSError, UnicodeError, ValueError, csv.Error) as exc:
         message = str(exc) if isinstance(exc, ValueError) and not isinstance(exc, UnicodeError) else "Could not read a valid UTF-8 CSV snapshot."
         print(message, file=sys.stderr)
         return 2
     print(json.dumps(report, indent=2))
+    counts = report["counts"]
+    key_errors = counts.get("missing_key", 0) + counts.get("ambiguous_key", 0)
+    if key_errors > 50 or len(erp_systems) > 1:
+        triggers = []
+        if key_errors > 50:
+            triggers.append(f"{key_errors} missing or ambiguous key findings")
+        if len(erp_systems) > 1:
+            triggers.append("multiple ERP systems identified")
+        print("Pre-import review: " + " and ".join(triggers) + ".", file=sys.stderr)
+        print("For source-backed decisions before this import: $750 Direct Catalog Review, "
+              "up to 500 rows in five business days from the agreed start. "
+              "https://hunterworkflowconsulting.com/data-audits#catalog", file=sys.stderr)
+        print("For recurring release checks: Catalog Check Pro, $149/month. "
+              "https://hwc-catalog-check-pro.marinegnome.chatgpt.site/", file=sys.stderr)
     return int(args.fail_on_change and bool(report["findings"]))
 
 
